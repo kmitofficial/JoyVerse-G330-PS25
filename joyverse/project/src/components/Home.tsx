@@ -6,7 +6,7 @@ const Home = () => {
 
   const handleStartGame = () => {
     const storedThemes = localStorage.getItem('assignedThemes');
-    const allThemes = ['underwater', 'space', 'forest', 'turquoise', 'yellow'];
+    const allThemes = ['underwater', 'space', 'forest', 'playground', 'kitchen'];
   
     let assignedThemes;
     if (!storedThemes) {
