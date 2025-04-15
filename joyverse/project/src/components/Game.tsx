@@ -4,8 +4,6 @@ import Confetti from 'react-confetti';
 import { ArrowRight, Home, AlertCircle, Trophy, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-
-
 // Word lists with themes and levels
 const wordLists = {
   underwater: {
@@ -109,9 +107,7 @@ const wordLists = {
     ],
   },
 };
-
 const Game = () => {
-  const emotion = 'happy';
   const { theme = 'underwater', level = '1' } = useParams();
   const navigate = useNavigate();
   const [grid, setGrid] = useState<string[][]>([]);
@@ -126,16 +122,10 @@ const Game = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [correctStreak, setCorrectStreak] = useState(0);
-  const [incorrectStreak, setIncorrectStreak] = useState(0);
-  const [wordIndex, setWordIndex] = useState(0);
-  const [lastTwoAnswers, setLastTwoAnswers] = useState<string[]>([]);
-  const [playedPuzzles, setPlayedPuzzles] = useState<Set<string>>(new Set());
-  const [levelStats, setLevelStats] = useState<{ [key: number]: { total: number, correct: number } }>({
-    1: { total: 0, correct: 0 },
-    2: { total: 0, correct: 0 },
-    3: { total: 0, correct: 0 },
-  });
-  
+const [incorrectStreak, setIncorrectStreak] = useState(0);
+const [wordIndex, setWordIndex] = useState(0);
+
+
   // Handle window resize
   useEffect(() => {
     const handleResize = () => {
@@ -167,9 +157,9 @@ const Game = () => {
   }, [theme, level, navigate]);
 
   const levelNum = Number(level) as 1 | 2 | 3;
-  const currentWord = wordLists[theme as keyof typeof wordLists]?.[levelNum]?.[wordIndex % wordLists[theme as keyof typeof wordLists][levelNum].length];
-  const wordLength = currentWord?.word.length || 3;
-  const gridSize = levelNum === 1 ? 3 : Math.max(wordLength, 3);
+  const currentWord = wordLists[theme]?.[levelNum]?.[wordIndex % wordLists[theme][levelNum].length];
+
+  const gridSize = parseInt(level) < 3 ? 4 : 5;
 
   // Generate grid and reset states
   useEffect(() => {
@@ -183,13 +173,13 @@ const Game = () => {
     setShowWrongMessage(false);
     setShowThemeComplete(false);
     setIsLoading(false);
-  }, [theme, level, currentWord, gridSize]);
+  }, [theme, level, currentWord]);
 
   // Handle cell click
   const handleCellClick = (row: number, col: number) => {
     if (completed || !currentWord) return;
   
-    const alreadySelected = selected.some(([r, c]) => r === row && c === col);
+const alreadySelected = selected.some(([r, c]) => r === row && c === col);
   
     let newSelected;
   
@@ -198,27 +188,14 @@ const Game = () => {
     } else {
       newSelected = [...selected, [row, col]];
     }
-  
-    setSelected(newSelected);
-  
+       setSelected(newSelected);
+
     const selectedWord = newSelected.map(([r, c]) => grid[r][c]).join('');
-  
+
     if (selectedWord.length === currentWord.word.length) {
-      // ✅ Always update stats
-      setLevelStats((prevStats) => {
-        const levelStat = prevStats[levelNum];
-        return {
-          ...prevStats,
-          [levelNum]: {
-            total: levelStat.total + 1,
-            correct: levelStat.correct + (selectedWord === currentWord.word ? 1 : 0),
-          },
-        };
-      });
-  
       if (selectedWord === currentWord.word) {
         setCorrectStreak((prev) => prev + 1);
-        setIncorrectStreak(0); 
+  setIncorrectStreak(0); 
         setCompleted(true);
         setShowConfetti(true);
       } else {
@@ -232,108 +209,118 @@ const Game = () => {
       }
     }
   };
-  
+  const [lastTwoAnswers, setLastTwoAnswers] = useState<string[]>([]);
+const [playedPuzzles, setPlayedPuzzles] = useState(new Set());
+const totalPuzzles = 10;
+const [lastTwoEmotions, setLastTwoEmotions] = useState(() => {
+  const stored = localStorage.getItem('lastTwoEmotions');
+  return stored ? JSON.parse(stored) : [];
+});
 
-  const adjustDifficulty = () => {
-    let newLevel = parseInt(level);
-    let newWordIndex = wordIndex + 1;
-    const totalPuzzles = 10;
-    const assignedThemes = JSON.parse(localStorage.getItem('assignedThemes') || '[]');
-    const currentThemeWords = wordLists[theme as keyof typeof wordLists][newLevel as 1 | 2 | 3];
-  
-    // ✅ Track performance success rate per level
-    const stats = levelStats[levelNum];
-    const successRate = stats.total > 0 ? stats.correct / stats.total : 0;
-  
-    // 🎯 Adjust level based on performance
-    if (successRate >= 0.8 && newLevel < 3) {
-      newLevel++; // Move up
-    } else if (successRate <= 0.5 && newLevel > 1) {
-      newLevel--; // Move down
-    } // else stay at current level
-  
-    console.log(`Level ${levelNum} stats:`, stats, `Success Rate: ${successRate * 100}%`);
-  
-    // ✅ Reset stats for new level (optional but helps fresh evaluation)
-    setLevelStats((prev) => ({
-      ...prev,
-      [newLevel]: { total: 0, correct: 0 },
-    }));
-  
-    // ✅ Emotion-based word count adjustment
-    let wordLimit = currentThemeWords.length;
-    if (emotion === 'happy') {
-      wordLimit = Math.min(wordLimit, 6); // Hard mode
-    } else if (emotion === 'sad') {
-      wordLimit = 3; // Easy mode
+
+const adjustDifficulty = async () => {
+  let newLevel = parseInt(level);
+  let newWordIndex = wordIndex + 1;
+  let currentTheme = theme;
+  let assignedThemes = JSON.parse(localStorage.getItem('assignedThemes') || '[]');
+ // console.log("Assigned themes:", assignedThemes);
+
+  // Track last two answers
+  const updatedAnswers = [...lastTwoAnswers, completed ? '✅' : '❌'].slice(-2);
+  setLastTwoAnswers(updatedAnswers);
+
+  // 🎯 Adjust level (difficulty) based on performance
+  if (updatedAnswers.length === 2) {
+    const [prev, curr] = updatedAnswers;
+    if (prev === '✅' && curr === '✅' && newLevel < 3) {
+      newLevel++;
+    } else if (prev === '❌' && curr === '❌' && newLevel > 1) {
+      newLevel--;
     }
-  
-    // ✅ Check if we completed this theme’s final level
-    const completedAllWords = newWordIndex >= wordLimit;
-    const masteredLevel = newLevel === 3 && successRate >= 0.8;
-  
-    if (completedAllWords && masteredLevel) {
-      const updatedThemes = assignedThemes.filter((t: string) => t !== theme);
-      localStorage.setItem('assignedThemes', JSON.stringify(updatedThemes));
-  
-      if (updatedThemes.length > 0) {
-        let newTheme = updatedThemes[0];
-        if ((emotion as 'happy' | 'sad') === 'happy' && updatedThemes.includes('space')) {
-          newTheme = 'space';
-        } else if ((emotion as 'happy' | 'sad') === 'sad' && updatedThemes.includes('forest')) {
-          newTheme = 'forest';
-        }
-  
-        // Reset game state for next theme
-        setWordIndex(0);
-        setPlayedPuzzles(new Set());
-        navigate(`/game/${newTheme}/1`);
-        return;
-      } else {
-        setShowThemeComplete(true);
-        return;
+  }
+
+  // 😄 Emotion-based Theme Handling
+  try {
+    const res = await fetch('http://localhost:5000/emotion');
+    const data = await res.json();
+    const emotion = data.emotion;
+    console.log('Detected Emotion:', emotion);
+
+    // Emotion mapping
+    const stayInSameTheme = ['happy', 'calm', 'surprised', 'excited'];
+    const switchThemeEmotions = ['sad', 'angry', 'bored'];
+
+    // 💡 Only switch theme if emotion is in switchThemeEmotions
+    if (switchThemeEmotions.includes(emotion)) {
+      const availableThemes = Object.keys(wordLists).filter((t) => t !== currentTheme && !assignedThemes.includes(t));
+      if (availableThemes.length > 0) {
+        const newTheme = availableThemes[Math.floor(Math.random() * availableThemes.length)];
+        currentTheme = newTheme;
+        console.log("switching to: ", currentTheme);
+        
+        // Keep newLevel as is (don’t reset it)
+        newWordIndex = 0;
+    
+        assignedThemes.push(newTheme);
+        localStorage.setItem('assignedThemes', JSON.stringify(assignedThemes));
       }
+    
+       else {
+        console.log('No new themes available. Staying in current theme.');
+      }
+      if (availableThemes.length === 0) {
+        console.log('No new themes available. Resetting assignedThemes.');
+        assignedThemes = [currentTheme]; // Reset and keep only the current one
+        localStorage.setItem('assignedThemes', JSON.stringify(assignedThemes));
+      }
+      
+    } else {
+      console.log('Emotion is positive or neutral. Staying in same theme.');
     }
+    
+  } catch (error) {
+    console.error('Failed to fetch emotion:', error);
+  }
+ 
   
-    // ✅ Avoid repeating puzzles
-    const updatedPlayedPuzzles = new Set(playedPuzzles);
-    let newPuzzleKey = `${theme}-${newLevel}-${newWordIndex}`;
-    while (
-      updatedPlayedPuzzles.has(newPuzzleKey) &&
-      newWordIndex < currentThemeWords.length
-    ) {
-      newWordIndex = (newWordIndex + 1) % currentThemeWords.length;
-      newPuzzleKey = `${theme}-${newLevel}-${newWordIndex}`;
-    }
-  
-    updatedPlayedPuzzles.add(newPuzzleKey);
-  
-    // 🛑 If all 10 puzzles played, show final screen
-    if (updatedPlayedPuzzles.size >= totalPuzzles) {
-      setShowThemeComplete(true);
-      return;
-    }
-  
-    // ✅ Continue to next puzzle
-    setPlayedPuzzles(updatedPlayedPuzzles);
-    setTimeout(() => {
-      setWordIndex(newWordIndex);
-      navigate(`/game/${theme}/${newLevel}`);
-    }, 500);
-  };  
-  useEffect(() => {
-    if (lastTwoAnswers.length > 2) {
-      setLastTwoAnswers((prev) => prev.slice(-2));
-    }
-  }, [lastTwoAnswers]);
+  // ✅ Ensure unique puzzles
+  const updatedPlayedPuzzles = new Set(playedPuzzles);
+  let newPuzzleKey = `${currentTheme}-${newLevel}-${newWordIndex}`;
+  while (updatedPlayedPuzzles.has(newPuzzleKey)) {
+    newWordIndex = (newWordIndex + 1) % wordLists[currentTheme][newLevel].length;
+    newPuzzleKey = `${currentTheme}-${newLevel}-${newWordIndex}`;
+  }
 
-  const handleNextLevel = () => {
-    setShowConfetti(false);
-    setTimeout(() => {
-      adjustDifficulty();
-    }, 500);
-  };
+  updatedPlayedPuzzles.add(newPuzzleKey);
 
+  // 🛑 End game if 10 unique puzzles played
+  if (updatedPlayedPuzzles.size >= totalPuzzles) {
+    setShowThemeComplete(true);
+    return;
+  }
+
+  // Save progress
+  setPlayedPuzzles(updatedPlayedPuzzles);
+
+  // ✅ Go to next puzzle
+  setTimeout(() => {
+    setWordIndex(newWordIndex);
+    
+    navigate(`/game/${currentTheme}/${newLevel}`);
+  }, 500);
+};
+
+
+const handleNextLevel = () => {
+  setShowConfetti(false);
+  setTimeout(() => {
+    adjustDifficulty();
+  }, 500);
+};
+
+
+
+  // Handle quit game
   const handleQuit = () => {
     const confirmQuit = window.confirm('Are you sure you want to quit the game?');
     if (confirmQuit) {
@@ -342,6 +329,7 @@ const Game = () => {
     }
   };
 
+  // Handle home click
   const handleHomeClick = () => {
     setShowConfetti(false);
     navigate('/');
@@ -351,7 +339,7 @@ const Game = () => {
     return <div className="text-center">Loading...</div>;
   }
 
-  return (
+    return (
     <div className="relative min-h-screen w-full overflow-hidden">
     {/* 🌌 Animated Background Layer */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
@@ -527,7 +515,6 @@ const Game = () => {
   </div>
  );
 };
-
 // Generate grid with random letters and the target word
 const generateGrid = (size: number, word: string) => {
   const grid: string[][] = [];
