@@ -1389,11 +1389,11 @@ const location=useLocation();
 // }, [location.state]);
   // Validate theme and level
   useEffect(() => {
-    const assignedThemes = JSON.parse(localStorage.getItem('assignedThemes') || '[]');
-    if (!assignedThemes.includes(theme)) {
-      navigate('/');
-      return;
-    }
+    // const assignedThemes = JSON.parse(localStorage.getItem('assignedThemes') || '[]');
+    // if (!assignedThemes.includes(theme)) {
+    //   navigate('/');
+    //   return;
+    // }
 
     const themeExists = theme in wordLists;
     const levelNum = parseInt(level);

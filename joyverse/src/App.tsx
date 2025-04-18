@@ -71,7 +71,7 @@ const App: React.FC = () => {
           <Route path="/child-login" element={<ChildLogin />} />
           <Route path="/landing" element={<Landing />} />
           <Route path="/game/:theme" element={<Game />} />
-          <Route path="/game/:theme/:index?" element={<Game />} />
+          <Route path="/game/:theme/:level?" element={<Game />} />
 
         </Routes>
       </Router>

@@ -25,15 +25,40 @@ const TherapistSignup: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: formData.username, password: formData.password })
       });
+      
+      const data = await response.json(); // Parse the response body
+      
       if (response.ok) {
         navigate('/login');
       } else {
-        setError('Signup failed');
+        // Use the server's error message if available, otherwise fall back to generic message
+        setError(data.message || 'Signup failed');
       }
     } catch (err) {
       setError('Network error');
     }
   };
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (formData.password !== formData.confirmPassword) {
+  //     setError('Passwords do not match');
+  //     return;
+  //   }
+  //   try {
+  //     const response = await fetch('http://localhost:5000/api/signup', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ username: formData.username, password: formData.password })
+  //     });
+  //     if (response.ok) {
+  //       navigate('/login');
+  //     } else {
+  //       setError('Signup failed');
+  //     }
+  //   } catch (err) {
+  //     setError('Network error');
+  //   }
+  // };
 
   return (
     <Container>
