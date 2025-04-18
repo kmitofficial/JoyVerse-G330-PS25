@@ -1,3 +1,68 @@
+// import React, { useState, useEffect } from 'react';
+// import { useNavigate } from 'react-router-dom';
+// import styled from 'styled-components';
+
+// interface ChildData {
+//   username: string;
+//   assignedThemes: string[];
+// }
+
+// const Landing: React.FC = () => {
+//   const [childData, setChildData] = useState<ChildData | null>(null);
+//   const [error, setError] = useState<string | null>(null);
+//   const navigate = useNavigate();
+
+//   useEffect(() => {
+//     const storedData = sessionStorage.getItem('childData');
+//     if (!storedData) {
+//       navigate('/child-login');
+//       return;
+//     }
+
+//     try {
+//       const data = JSON.parse(storedData);
+//       setChildData(data);
+//     } catch (err) {
+//       console.error('Error parsing child data:', err);
+//       navigate('/child-login');
+//     }
+//   }, [navigate]);
+
+//   // const handlePlayGames = () => {
+//   //   if (childData?.assignedThemes && childData.assignedThemes.length > 0) {
+//   //     // Navigate to the first assigned theme
+//   //     console.log(childData.assignedThemes[0])
+//   //     console.log(childData.assignedThemes[1])
+//   //     console.log(childData.assignedThemes[2])
+//   //     navigate(`/game/${childData.assignedThemes[0]}`);
+//   //   } else {
+//   //     setError('No games have been assigned to you yet. Please ask your therapist to assign some games.');
+//   //   }
+//   // };
+//   const handlePlayGames = () => {
+//     if (childData?.assignedThemes?.length) {
+//       navigate(`/game/${childData.assignedThemes[0]}`, {
+//         state: { 
+//           assignedThemes: childData.assignedThemes,
+//           username: childData.username,
+//           therapistCode: childData.therapistCode
+//         }
+//       });
+//     } else {
+//       setError('No games assigned');
+//     }
+//   };
+//   // const handleLogout = () => {
+//   //   sessionStorage.removeItem('childData');
+//   //   navigate('/child-login');
+//   // };
+//   const handleLogout = () => {
+//     // Clear all session data
+//     sessionStorage.removeItem('childData');
+//     // If you stored anything else:
+//     sessionStorage.removeItem('gameProgress');
+//     navigate('/child-login');
+//   };
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
@@ -5,6 +70,7 @@ import styled from 'styled-components';
 interface ChildData {
   username: string;
   assignedThemes: string[];
+  therapistCode: string; // Added this
 }
 
 const Landing: React.FC = () => {
@@ -29,9 +95,17 @@ const Landing: React.FC = () => {
   }, [navigate]);
 
   const handlePlayGames = () => {
-    if (childData?.assignedThemes && childData.assignedThemes.length > 0) {
-      // Navigate to the first assigned theme
-      navigate(`/game/${childData.assignedThemes[0]}`);
+    if (childData?.assignedThemes?.length) {
+      console.log(childData.assignedThemes[0])
+      console.log(childData.assignedThemes[1])
+      console.log(childData.assignedThemes[2])
+      navigate(`/game/${childData.assignedThemes[0]}`, {
+        state: { 
+          assignedThemes: childData.assignedThemes,
+          username: childData.username,
+          therapistCode: childData.therapistCode // Now valid
+        }
+      });
     } else {
       setError('No games have been assigned to you yet. Please ask your therapist to assign some games.');
     }
@@ -39,9 +113,9 @@ const Landing: React.FC = () => {
 
   const handleLogout = () => {
     sessionStorage.removeItem('childData');
+    sessionStorage.removeItem('gameProgress');
     navigate('/child-login');
   };
-
   if (!childData) return <Container>Loading...</Container>;
 
   return (

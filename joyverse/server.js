@@ -151,20 +151,33 @@ app.post('/api/child-login', async (req, res) => {
   }
 });
 app.get('/api/get-child-themes', async (req, res) => {
-  const { username, therapistCode } = req.query;
-
-  try {
-    const therapist = await Therapist.findOne({ code: therapistCode });
-    if (!therapist) return res.status(404).json({ error: "Therapist not found" });
-
-    const child = therapist.children.find(c => c.username === username);
-    if (!child) return res.status(404).json({ error: "Child not found" });
-
-    res.json({ themes: child.assignedThemes || ['underwater'] }); // Default theme
-  } catch (error) {
-    res.status(500).json({ error: "Server error" });
-  }
+  const therapist = await Therapist.findOne({
+    code: req.query.therapistCode,
+    "children.username": req.query.username
+  });
+  
+  const child = therapist?.children.find(c => c.username === req.query.username);
+  
+  // STRICT return - only assigned themes
+  res.json({ 
+    themes: child?.assignedThemes || ['underwater'] 
+  });
 });
+// app.get('/api/get-child-themes', async (req, res) => {
+//   const { username, therapistCode } = req.query;
+
+//   try {
+//     const therapist = await Therapist.findOne({ code: therapistCode });
+//     if (!therapist) return res.status(404).json({ error: "Therapist not found" });
+
+//     const child = therapist.children.find(c => c.username === username);
+//     if (!child) return res.status(404).json({ error: "Child not found" });
+
+//     res.json({ themes: child.assignedThemes || ['underwater'] }); // Default theme
+//   } catch (error) {
+//     res.status(500).json({ error: "Server error" });
+//   }
+// });
 app.post('/api/update-child-themes', async (req, res) => {
   const { username, therapistCode, themes } = req.body;
 
