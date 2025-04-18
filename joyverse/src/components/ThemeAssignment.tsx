@@ -22,7 +22,7 @@ const ThemeAssignment: React.FC = () => {
     const therapistCode = sessionStorage.getItem('selectedChildTherapistCode');
     
     if (!selectedChild || !therapistCode) {
-      navigate('/therapist-dashboard');
+      navigate('/dashboard');
       return;
     }
 
