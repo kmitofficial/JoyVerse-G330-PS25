@@ -69,7 +69,7 @@ const ChildLogin: React.FC = () => {
             />
           </InputGroup>
           <InputGroup>
-            <Label>Your Hero Name</Label>
+            <Label>Your Name</Label>
             <Input
               type="text"
               value={childName}
@@ -177,7 +177,7 @@ const Input = styled.input`
 
 const Button = styled.button`
   padding: 1rem;
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  background: linear-gradient(135deg, #6e8efb 0%, #a777e3 100%);
   color: white;
   border: none;
   border-radius: 10px;

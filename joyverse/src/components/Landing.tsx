@@ -99,7 +99,7 @@ const Landing: React.FC = () => {
       console.log(childData.assignedThemes[0])
       console.log(childData.assignedThemes[1])
       console.log(childData.assignedThemes[2])
-      navigate(`/game/${childData.assignedThemes[0]}`, {
+      navigate(`/game/${childData.assignedThemes[0]}/1`, {
         state: { 
           assignedThemes: childData.assignedThemes,
           username: childData.username,

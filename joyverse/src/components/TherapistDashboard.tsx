@@ -101,7 +101,7 @@ const TherapistDashboard: React.FC = () => {
   return (
     <Container>
       <Header>
-        <Title>Therapist Dashboard</Title>
+        <Title>THERAPIST DASHBOARD</Title>
         <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
       </Header>
 
@@ -166,7 +166,7 @@ const InfoCard = styled.div`
   text-align: center;
 `;
 const CodeDisplay = styled.div`
-  font-size: 24px; font-weight: bold; color: #4CAF50; margin: 10px 0;
+  font-size: 24px; font-weight: bold; color: #5a7af0; margin: 10px 0;
 `;
 const Section = styled.div`margin-bottom: 30px;`;
 const SectionHeader = styled.div`
@@ -179,9 +179,9 @@ const Input = styled.input`
   padding: 10px; border: 1px solid #ddd; border-radius: 4px; flex: 1;
 `;
 const Button = styled.button`
-  padding: 10px 20px; background-color: #4CAF50;
+  padding: 10px 20px; background-color: #5a7af0;
   color: white; border: none; border-radius: 4px; cursor: pointer;
-  &:hover { background-color: #45a049; }
+  &:hover { background-color: #5a7af0; }
 `;
 const ErrorMessage = styled.div`
   color: #e74c3c; background: #fdeaea; padding: 0.8rem;

@@ -22,7 +22,7 @@ const ThemeAssignment: React.FC = () => {
     const therapistCode = sessionStorage.getItem('selectedChildTherapistCode');
     
     if (!selectedChild || !therapistCode) {
-      navigate('/therapist-dashboard');
+      navigate('/dashboard');
       return;
     }
 
@@ -105,7 +105,7 @@ const ThemeAssignment: React.FC = () => {
       if (data.success) {
         setSuccess('Themes assigned successfully!');
         setTimeout(() => {
-          navigate('/therapist-dashboard');
+          navigate('/dashboard');
         }, 2000);
       } else {
         setError(data.message || 'Failed to assign themes');
