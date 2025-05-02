@@ -1,112 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useRef,useState, useEffect } from 'react';
 import { useParams, useNavigate,useLocation } from 'react-router-dom';
 import Confetti from 'react-confetti';
 import { ArrowRight, Home, AlertCircle, Trophy, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import wordLists from '../data/wordLists';
+import * as tf from '@tensorflow/tfjs';
+import * as facemesh from '@tensorflow-models/facemesh';
+import { debounce } from 'lodash';
 
-// Word lists with themes and levels
-const wordLists = {
-  underwater: {
-    1: [
-      { word: 'SEA', image: '/images/sea.jpg' },
-      { word: 'NET', image: '/images/net.jpg' },
-      { word: 'ICE', image: '/images/ice.jpg' },
-      { word: 'EEL', image: '/images/eel.jpg' }
-    ],
-    2: [
-      { word: 'FISH', image: '/images/fish.jpg' },
-      { word: 'SAND', image: '/images/sand.jpg' },
-      { word: 'WAVE', image: '/images/wave.jpg' },
-      { word: 'SHIP', image: '/images/ship.jpg' }
-    ],
-    3: [
-      { word: 'WHALE', image: '/images/whale.jpg' },
-      { word: 'SHARK', image: '/images/shark.jpg' },
-      { word: 'SHELL', image: '/images/shell.jpg' },
-      { word: 'OCEAN', image: '/images/ocean.jpg' }
-    ],
-  },
-  space: {
-    1: [
-      { word: 'SUN', image: '/images/sun.jpg' },
-      { word: 'UFO', image: '/images/ufo.jpg' },
-      { word: 'SKY', image: '/images/sky.jpg' },
-      { word: 'GAS', image: '/images/gas.jpg' }
-    ],
-    2: [
-      { word: 'MOON', image: '/images/moon.jpg' },
-      { word: 'MARS', image: '/images/mars.jpg' },
-      { word: 'STAR', image: '/images/star.jpg' },
-      { word: 'ROCK', image: '/images/rock.jpg' }
-    ],
-    3: [
-      { word: 'VENUS', image: '/images/venus.jpg' },
-      { word: 'EARTH', image: '/images/earth.jpg' },
-      { word: 'SPACE', image: '/images/space1.jpg' },
-      { word: 'COMET', image: '/images/comet.jpg' }
-    ],
-  },
-  forest: {
-    1: [
-      { word: 'LOG', image: '/images/log.jpg' },
-      { word: 'MUD', image: '/images/mud.jpg' },
-      { word: 'BUG', image: '/images/bug.jpg' },
-      { word: 'ANT', image: '/images/ant.jpg' }
-    ],
-    2: [
-      { word: 'TREE', image: '/images/tree.jpg' },
-      { word: 'LEAF', image: '/images/leaf.jpg' },
-      { word: 'RAIN', image: '/images/rain.jpg' },
-      { word: 'BIRD', image: '/images/bird.jpg' }
-    ],
-    3: [
-      { word: 'PLANT', image: '/images/plant.jpg' },
-      { word: 'BERRY', image: '/images/berry.jpg' },
-      { word: 'GRASS', image: '/images/grass.jpg' },
-      { word: 'FRUIT', image: '/images/fruit.jpg' }
-    ],
-  },
-  playground: {
-    1: [
-      { word: 'RUN', image: '/images/run.jpg' },
-      { word: 'HOP', image: '/images/hop.jpg' },
-      { word: 'TOY', image: '/images/toy.jpg' },
-      { word: 'TAG', image: '/images/tag.jpg' }
-    ],
-    2: [
-      { word: 'BALL', image: '/images/ball.jpg' },
-      { word: 'PLAY', image: '/images/play.jpg' },
-      { word: 'RIDE', image: '/images/ride.jpg' },
-      { word: 'SAND', image: '/images/sand.jpg' }
-    ],
-    3: [
-      { word: 'CLIMB', image: '/images/climb.jpg' },
-      { word: 'SLIDE', image: '/images/slide.jpg' },
-      { word: 'SWING', image: '/images/swing.jpg' },
-      { word: 'TRAIN', image: '/images/train.jpg' }
-    ],
-  },
-  kitchen: {
-    1: [
-      { word: 'PAN', image: '/images/pan.jpg' },
-      { word: 'CUP', image: '/images/cup.jpg' },
-      { word: 'EGG', image: '/images/egg.jpg' },
-      { word: 'POT', image: '/images/pot.jpg' }
-    ],
-    2: [
-      { word: 'FORK', image: '/images/fork.jpg' },
-      { word: 'MILK', image: '/images/milk.jpg' },
-      { word: 'RICE', image: '/images/rice.jpg' },
-      { word: 'BOWL', image: '/images/bowl.jpg' }
-    ],
-    3: [
-      { word: 'PLATE', image: '/images/plate.jpg' },
-      { word: 'KNIFE', image: '/images/knife.jpg' },
-      { word: 'SPOON', image: '/images/spoon.jpg' },
-      { word: 'MIXER', image: '/images/mixer.jpg' }
-    ],
-  },
-};
 
 const Game = () => {
   const { theme = 'underwater', level = '1' } = useParams();
@@ -130,8 +31,99 @@ const Game = () => {
   const [playedPuzzles, setPlayedPuzzles] = useState(new Set<string>());
   const totalPuzzles = 10;
   const [themes, setThemes] = useState<string[]>([]); // Add this line
+  const [landmarks, setLandmarks] = useState<any[]>([]);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [model, setModel] = useState<facemesh.FaceMesh | null>(null);
+// Handle window resize
 
-  // Handle window resize
+useEffect(() => {
+  const loadModel = async () => {
+    await tf.ready();  // Ensure TensorFlow is ready
+    const faceMeshModel = await facemesh.load();
+    setModel(faceMeshModel);
+  };
+
+  loadModel();
+}, []);
+
+// Start video stream and detect facial landmarks
+useEffect(() => {
+  if (!model) return;
+
+  const startVideo = async () => {
+    if (videoRef.current) {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+      });
+      videoRef.current.srcObject = stream;
+
+      videoRef.current.onloadedmetadata = () => {
+        videoRef.current?.play();
+        detectFaceMesh();
+      };
+    }
+  };
+
+  const detectFaceMesh = async () => {
+    if (!videoRef.current || !canvasRef.current) return;
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Set the canvas size to match the video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    // Detect the face and get the landmarks
+    const predictions = await model.estimateFaces(video);
+    if (predictions.length > 0) {
+      setLandmarks(predictions[0].scaledMesh); // Save the landmarks
+
+      // Clear the canvas and draw the landmarks
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      predictions.forEach((prediction) => {
+        prediction.scaledMesh.forEach((point) => {
+          ctx.beginPath();
+          ctx.arc(point[0], point[1], 1, 0, 2 * Math.PI);
+          ctx.fillStyle = 'red';
+          ctx.fill();
+        });
+      });
+    }
+
+    // Continuously detect every 100ms
+    requestAnimationFrame(detectFaceMesh);
+  };
+
+  startVideo();
+}, [model]);
+
+// Send landmarks to the backend
+useEffect(() => {
+  if (landmarks.length > 0) {
+    const sendLandmarksToBackend = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/facemesh-landmarks', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ landmarks }),
+        });
+        const data = await response.json();
+        //console.log('Backend response:', data);
+      } catch (error) {
+        console.error('Error sending landmarks to backend:', error);
+      }
+    };
+
+    sendLandmarksToBackend();
+  }
+}, [landmarks]);
+
   useEffect(() => {
     const handleResize = () => {
       setWindowSize({
@@ -369,6 +361,9 @@ const location=useLocation();
     <div className="relative min-h-screen w-full overflow-hidden">
       {/* Animated Background Layer */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden"></div>
+      <video ref={videoRef} style={{ width: '100%' }} />
+      <canvas ref={canvasRef} style={{ position: 'absolute' }} />
+
       {/* Game Content */}
       <div
         className="relative z-10 flex flex-col items-center justify-center min-h-screen bg-cover bg-center bg-no-repeat p-8"

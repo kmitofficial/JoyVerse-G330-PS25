@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import { customAlphabet } from 'nanoid';
+import axios from 'axios';
 
 const generateNumericCode = customAlphabet('0123456789', 6);
 const app = express();
@@ -218,83 +219,33 @@ app.post('/api/update-played-puzzles', async (req, res) => {
     res.status(500).json({ error: "Failed to update puzzles" });
   }
 });
+
+app.post('/api/facemesh-landmarks', async (req, res) => {
+  const { landmarks } = req.body;
+  console.log('Received landmarks:', landmarks.length);
+
+  try {
+    // Forward landmarks to the Python model
+    const response = await axios.post('http://127.0.0.1:5000/predict', { landmarks });
+
+    const emotion = response.data.emotion;
+    console.log('Predicted emotion from model:', emotion);
+
+    // Send the emotion back to the frontend
+    res.status(200).json({ emotion });
+  } catch (error) {
+    console.error('Error forwarding to Python model:', error.message);
+    res.status(500).json({ error: 'Failed to predict emotion' });
+  }
+});
+
+
 // Mock emotion detection (replace with real AI/model later)
 app.get('/api/emotion', (req, res) => {
   const emotions = ['happy', 'sad', 'angry', 'bored', 'calm'];
   const randomEmotion = emotions[Math.floor(Math.random() * emotions.length)];
   res.json({ emotion: randomEmotion });
 });
-// // Update Child Themes
-// app.post('/api/update-child-themes', async (req, res) => {
-//   const { username, therapistCode, themes } = req.body;
-//   console.log('Received update themes request:', { username, therapistCode, themes });
-
-//   if (!username || !therapistCode || !themes) {
-//     return res.status(400).json({ message: 'Missing required fields' });
-//   }
-
-//   try {
-//     const therapist = await Therapist.findOne({ code: therapistCode });
-//     if (!therapist) {
-//       console.log('Therapist not found for code:', therapistCode);
-//       return res.status(404).json({ message: 'Therapist not found' });
-//     }
-
-//     const child = therapist.children.find(child => child.username === username);
-//     if (!child) {
-//       console.log('Child not found:', username);
-//       return res.status(404).json({ message: 'Child not found' });
-//     }
-
-//     child.assignedThemes = themes;
-//     await therapist.save();
-//     console.log('Themes updated successfully for child:', username);
-
-//     res.status(200).json({ success: true, message: 'Themes updated successfully' });
-//   } catch (error) {
-//     console.error('Error updating themes:', error);
-//     res.status(500).json({ success: false, message: 'Internal server error' });
-//   }
-// });
-
-// // Get Child Themes
-// app.get('/api/get-child-themes', async (req, res) => {
-//   const { username, therapistCode } = req.query;
-//   console.log('Received get themes request:', { username, therapistCode });
-
-//   if (!username || !therapistCode) {
-//     return res.status(400).json({ message: 'Missing required fields' });
-//   }
-
-//   try {
-//     const therapist = await Therapist.findOne({ code: therapistCode });
-//     if (!therapist) {
-//       console.log('Therapist not found for code:', therapistCode);
-//       return res.status(404).json({ message: 'Therapist not found' });
-//     }
-
-//     const child = therapist.children.find(child => child.username === username);
-//     if (!child) {
-//       console.log('Child not found:', username);
-//       return res.status(404).json({ message: 'Child not found' });
-//     }
-
-//     console.log('Returning themes for child:', username, child.assignedThemes);
-//     res.status(200).json({ themes: child.assignedThemes });
-//   } catch (error) {
-//     console.error('Error fetching themes:', error);
-//     res.status(500).json({ message: 'Internal server error' });
-//   }
-// });
-// app.post('/api/update-played-puzzles', async (req, res) => {
-//   const { username, puzzleId } = req.body;
-//   console.log(`User ${username} played puzzle ${puzzleId}`);
-  
-//   // If you're saving this in MongoDB:
-//   await PlayedPuzzleModel.create({ username, puzzleId, playedAt: new Date() });
-
-//   res.status(200).json({ message: 'Puzzle updated' });
-// });
 
 app.listen(port, () => {
   console.log(`🚀 Server running at http://localhost:${port}`);
