@@ -36,6 +36,33 @@ const Game = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [model, setModel] = useState<facemesh.FaceMesh | null>(null);
 // Handle window resize
+const lastSentRef = useRef(Date.now());
+const streamRef = useRef<MediaStream | null>(null);
+
+
+useEffect(() => {
+  // Request camera access when the component mounts
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        streamRef.current = stream;
+        await videoRef.current.play();
+      }
+    } catch (err) {
+      console.error('Camera permission denied or not available', err);
+    }
+  };
+
+  startCamera();
+  return () => {
+    // Stop the camera when component unmounts
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+    }
+  };
+}, []);
 
 useEffect(() => {
   const loadModel = async () => {
@@ -100,10 +127,13 @@ useEffect(() => {
 
   startVideo();
 }, [model]);
-
-// Send landmarks to the backend
 useEffect(() => {
   if (landmarks.length > 0) {
+    const now = Date.now();
+    if (now - lastSentRef.current < 3000) return; // throttle: 1000ms
+
+    lastSentRef.current = now;
+
     const sendLandmarksToBackend = async () => {
       try {
         const response = await fetch('http://localhost:5000/api/facemesh-landmarks', {
@@ -114,7 +144,7 @@ useEffect(() => {
           body: JSON.stringify({ landmarks }),
         });
         const data = await response.json();
-        //console.log('Backend response:', data);
+        // console.log('Backend response:', data);
       } catch (error) {
         console.error('Error sending landmarks to backend:', error);
       }
@@ -123,6 +153,7 @@ useEffect(() => {
     sendLandmarksToBackend();
   }
 }, [landmarks]);
+
 
   useEffect(() => {
     const handleResize = () => {
@@ -277,8 +308,8 @@ const location=useLocation();
       console.error('Failed to fetch emotion:', error);
     }
   
-    const stayInSameTheme = ['happy', 'calm', 'surprised', 'excited'];
-    const switchThemeEmotions = ['sad', 'angry', 'bored'];
+    const stayInSameTheme = ['Happiness', 'Surprise'];
+    const switchThemeEmotions = ['Fear', 'Anger', 'Disgust','Sadness'];
     if (switchThemeEmotions.includes(emotion)) {
       const sessionData = sessionStorage.getItem('childData');
       if (!sessionData) {
@@ -316,6 +347,8 @@ const location=useLocation();
   
     // End game if 10 unique puzzles played
     if (updatedPlayedPuzzles.size >= totalPuzzles) {
+      stopCamera();
+
       setShowThemeComplete(true);
       return;
     }
@@ -338,10 +371,40 @@ const location=useLocation();
     }, 500);
   };
 
+  const stopCamera = () => {
+    console.log('Trying to stop camera...');
+  
+    if (streamRef.current) {
+      const tracks = streamRef.current.getTracks();
+      if (tracks.length === 0) {
+        console.log('No tracks found in stream.');
+      } else {
+        tracks.forEach((track) => {
+          console.log(`Stopping track: ${track.kind}`);
+          track.stop();
+        });
+      }
+      streamRef.current = null;
+    } else {
+      console.log('No stream found in streamRef.');
+    }
+  
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+      //videoRef.current.load(); 
+      console.log('Video source cleared.');
+    } else {
+      console.log('videoRef is null.');
+    }
+  };
+  
+  
+
   // Handle quit game
   const handleQuit = () => {
     const confirmQuit = window.confirm('Are you sure you want to quit the game?');
     if (confirmQuit) {
+      stopCamera();
       setShowConfetti(false);
       navigate('/');
     }
@@ -349,6 +412,7 @@ const location=useLocation();
 
   // Handle home click
   const handleHomeClick = () => {
+    stopCamera();
     setShowConfetti(false);
     navigate('/');
   };
@@ -361,8 +425,8 @@ const location=useLocation();
     <div className="relative min-h-screen w-full overflow-hidden">
       {/* Animated Background Layer */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden"></div>
-      <video ref={videoRef} style={{ width: '100%' }} />
-      <canvas ref={canvasRef} style={{ position: 'absolute' }} />
+      <video ref={videoRef} style={{ display: 'none' }} playsInline muted/>
+      <canvas ref={canvasRef} style={{ display: 'none' }} />
 
       {/* Game Content */}
       <div

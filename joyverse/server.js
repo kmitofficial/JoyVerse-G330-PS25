@@ -220,6 +220,7 @@ app.post('/api/update-played-puzzles', async (req, res) => {
   }
 });
 
+/*
 app.post('/api/facemesh-landmarks', async (req, res) => {
   const { landmarks } = req.body;
   console.log('Received landmarks:', landmarks.length);
@@ -245,7 +246,83 @@ app.get('/api/emotion', (req, res) => {
   const emotions = ['happy', 'sad', 'angry', 'bored', 'calm'];
   const randomEmotion = emotions[Math.floor(Math.random() * emotions.length)];
   res.json({ emotion: randomEmotion });
+});*/
+
+/*
+let lastPredictedEmotion = null;
+
+let emotionHistory = [];
+let currentEmotion = null; // used to change the theme
+
+// Receives FaceMesh landmarks and gets emotion from Python model
+app.post('/api/facemesh-landmarks', async (req, res) => {
+  const { landmarks } = req.body;
+  console.log('Received landmarks:', landmarks.length);
+
+  try {
+    const response = await axios.post('http://127.0.0.1:5000/predict', { landmarks });
+
+    const emotion = response.data.emotion;
+    console.log('Predicted emotion from model:', emotion);
+
+    // Update both current emotion and full history
+    currentEmotion = emotion;
+    emotionHistory.push(emotion);
+
+    res.status(200).json({ emotion });
+  } catch (error) {
+    console.error('Error forwarding to Python model:', error.message);
+    res.status(500).json({ error: 'Failed to predict emotion' });
+  }
 });
+
+// Used by the frontend to get the current emotion to decide the next theme
+app.get('/api/emotion', (req, res) => {
+  if (currentEmotion) {
+    res.json({ emotion: currentEmotion });
+  } else {
+    res.status(404).json({ error: 'No emotion predicted yet' });
+  }
+});
+*/
+
+let currentPuzzleEmotions = [];
+
+app.post('/api/facemesh-landmarks', async (req, res) => {
+  const { landmarks } = req.body;
+  console.log("Received Landmarks",landmarks.length)
+  try {
+    const response = await axios.post('http://127.0.0.1:5000/predict', { landmarks });
+    const emotion = response.data.emotion;
+    console.log('Predicted emotion from model:', emotion);
+    currentPuzzleEmotions.push(emotion); // accumulate emotions
+    res.status(200).json({ emotion });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to predict emotion' });
+  }
+});
+ 
+app.get('/api/emotion', (req, res) => {
+  if (currentPuzzleEmotions.length === 0) {
+    return res.status(404).json({ error: 'No emotions recorded for this puzzle yet' });
+  }
+
+  // Calculate the most frequent (mode)
+  const counts = {};
+  for (const e of currentPuzzleEmotions) {
+    counts[e] = (counts[e] || 0) + 1;
+  }
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  const dominantEmotion = sorted[0][0];
+  console.log(currentPuzzleEmotions)
+  // Clear history for the next puzzle
+  currentPuzzleEmotions = [];
+
+  res.json({ emotion: dominantEmotion });
+});
+
+
+
 
 app.listen(port, () => {
   console.log(`🚀 Server running at http://localhost:${port}`);
