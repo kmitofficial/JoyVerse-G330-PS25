@@ -162,12 +162,13 @@ const Game = () => {
   const [wordIndex, setWordIndex] = useState(0);
   const [lastTwoAnswers, setLastTwoAnswers] = useState<string[]>([]);
 const [playedPuzzles, setPlayedPuzzles] = useState<Set<string>>(new Set());
+const totalPuzzles = 10;
 const [playedCount, setPlayedCount] = useState<number>(() => {
   const stored = sessionStorage.getItem('playedCount');
   return stored ? Math.min(Number(stored), totalPuzzles) : 0;
 });
 const [sessionId, setSessionId] = useState('');
-  const totalPuzzles = 10;
+ 
   const [currentTheme, setCurrentTheme] = useState(initialTheme);
   const [currentLevel, setCurrentLevel] = useState(initialLevel);
   const [themes, setThemes] = useState<string[]>([]);
@@ -179,7 +180,15 @@ const [sessionId, setSessionId] = useState('');
 // Handle window resize
 const lastSentRef = useRef(Date.now());
 const streamRef = useRef<MediaStream | null>(null);
+const [score,setScore]=useState(0);
 
+useEffect(() => {
+  if (showThemeComplete) {
+    // Game is completed, clear session storage here
+    sessionStorage.removeItem('playedCount');
+    sessionStorage.removeItem('playedPuzzles');
+  }
+}, [showThemeComplete]);
 
 useEffect(() => {
   // Request camera access when the component mounts
@@ -524,6 +533,7 @@ useEffect(() => {
         setIncorrectStreak(0);
         setCompleted(true);
         setShowConfetti(true);
+        setScore(prev => prev + 1);
       } else {
         setIncorrectStreak(is => is + 1);
         setCorrectStreak(0);
@@ -544,6 +554,7 @@ useEffect(() => {
     // Only allow progress if not already finished
     if (playedCount >= totalPuzzles) {
       setShowThemeComplete(true);
+      
       return;
     }
 
@@ -768,11 +779,7 @@ useEffect(() => {
                   >
                     Next <ArrowRight size={20} />
                   </motion.button>
-                  <div className="mt-4 text-purple-700 text-lg">
-                    Puzzles played: <span className="font-bold">
-                      {playedCount > totalPuzzles ? totalPuzzles : playedCount}
-                    </span> / <span className="font-bold">{totalPuzzles}</span>
-                  </div>
+
                 </motion.div>
               </>
             )}
@@ -802,7 +809,7 @@ useEffect(() => {
                   You're a word search champion!
                   <br />
                   <span className="text-lg text-gray-700">
-                    Puzzles played: {playedCount > totalPuzzles ? totalPuzzles : playedCount} / {totalPuzzles}
+                    Score: {score} / {totalPuzzles}
                   </span>
                 </p>
                 <motion.button
