@@ -1,12 +1,336 @@
+// import React, { useEffect, useState } from 'react';
+// import { useNavigate } from 'react-router-dom';
+// import styled from 'styled-components';
+
+// interface Child {
+//   username: string;
+//   joinedAt: string;
+//   assignedThemes: string[];
+// }
+
+// const TherapistDashboard: React.FC = () => {
+//   const [therapistUsername, setTherapistUsername] = useState('');
+//   const [therapistCode, setTherapistCode] = useState('');
+//   const [children, setChildren] = useState<Child[]>([]);
+//   const [newChildUsername, setNewChildUsername] = useState('');
+//   const [error, setError] = useState<string | null>(null);
+//   const [loading, setLoading] = useState(true);
+//   const navigate = useNavigate();
+
+//   useEffect(() => {
+//     const username = sessionStorage.getItem('therapistUsername');
+//     const code = sessionStorage.getItem('therapistCode');
+
+//     if (!username || !code) {
+//       navigate('/');
+//       return;
+//     }
+
+//     setTherapistUsername(username);
+//     setTherapistCode(code);
+//     fetchTherapistData(username);
+//   }, [navigate]);
+
+//   const fetchTherapistData = async (username: string) => {
+//     try {
+//       const response = await fetch('http://localhost:5000/api/get-therapist', {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({ username }),
+//       });
+
+//       const data = await response.json();
+//       if (response.ok) {
+//         setChildren(data.children || []);
+//         setError(null);
+//       } else {
+//         setError(data.message || 'Failed to fetch therapist data');
+//       }
+//     } catch (err) {
+//       setError('Server error');
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const handleAddChild = async () => {
+//     if (!newChildUsername.trim()) {
+//       setError('Enter a child username');
+//       return;
+//     }
+
+//     try {
+//       const response = await fetch('http://localhost:5000/api/add-child', {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({
+//           therapistCode: therapistCode,
+//           childName: newChildUsername
+//         }),
+//       });
+
+//       const data = await response.json();
+
+//       if (response.ok) {
+//         await fetchTherapistData(therapistUsername);
+//         setNewChildUsername('');
+//         setError(null);
+//       } else {
+//         setError(data.message || 'Failed to add child');
+//       }
+//     } catch (err) {
+//       setError('Network error');
+//       console.error('Error adding child:', err);
+//     }
+//   };
+
+//   const handleAssignThemes = (childUsername: string) => {
+//     sessionStorage.setItem('selectedChild', childUsername);
+//     sessionStorage.setItem('selectedChildTherapistCode', therapistCode);
+//     navigate('/theme-assignment');
+//   };
+
+//   const handleLogout = () => {
+//     sessionStorage.clear();
+//     navigate('/');
+//   };
+
+//   if (loading) return <FullScreenBackground><ContentContainer>Loading...</ContentContainer></FullScreenBackground>;
+//   if (error) return <FullScreenBackground><ContentContainer>Error: {error}</ContentContainer></FullScreenBackground>;
+
+//   return (
+//     <FullScreenBackground>
+//       <ContentContainer>
+//         <Header>
+//           <EnhancedTitle>THERAPIST DASHBOARD</EnhancedTitle>
+//           <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
+//         </Header>
+
+//         <InfoSection>
+//           <InfoCard>
+//             <h3>Your Therapist Code</h3>
+//             <CodeDisplay>{therapistCode}</CodeDisplay>
+//             <small>Share this code with your patients to let them join</small>
+//           </InfoCard>
+//         </InfoSection>
+
+//         <Section>
+//           <SectionHeader>
+//             <EnhancedSectionTitle>Your Children</EnhancedSectionTitle>
+//           </SectionHeader>
+
+//           <AddChildSection>
+//             <InputGroup>
+//               <Input
+//                 type="text"
+//                 value={newChildUsername}
+//                 onChange={(e) => setNewChildUsername(e.target.value)}
+//                 placeholder="Enter child username"
+//               />
+//               <Button onClick={handleAddChild}>Add Child</Button>
+//             </InputGroup>
+//             {error && <ErrorMessage>{error}</ErrorMessage>}
+//           </AddChildSection>
+
+//           {children.length === 0 ? (
+//             <EmptyState>No children added yet</EmptyState>
+//           ) : (
+//             <ChildrenGrid>
+//               {children.map((child) => (
+//                 <ChildCard key={child.username}>
+//                   <h3>{child.username}</h3>
+//                   <p>Joined: {new Date(child.joinedAt).toLocaleDateString()}</p>
+//                   <p>Assigned Themes: {child.assignedThemes?.length || 0}</p>
+//                   <ActionButton onClick={() => handleAssignThemes(child.username)}>
+//                     Assign Themes
+//                   </ActionButton>
+//                 </ChildCard>
+//               ))}
+//             </ChildrenGrid>
+//           )}
+//         </Section>
+//       </ContentContainer>
+//     </FullScreenBackground>
+//   );
+// };
+
+// // Full screen background
+// const FullScreenBackground = styled.div`
+//   min-height: 100vh;
+//   width: 100%;
+//   background: url('/images/bg-6.jpg') no-repeat center center fixed;
+//   background-size: cover;
+//   margin: 0;
+//   padding: 0;
+//   display: flex;
+//   justify-content: center;
+// `;
+
+// // Content container
+// const ContentContainer = styled.div`
+//   padding: 20px;
+//   width: 100%;
+//   max-width: 1200px;
+// `;
+
+// const Header = styled.div`display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;`;
+
+// // Enhanced title with text shadow and bold styling
+// const EnhancedTitle = styled.h1`
+//   color: #333;
+//   margin: 0;
+//   font-weight: 800;
+//   font-size: 32px;
+//   text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
+//   background-color: rgba(255, 255, 255, 0.7);
+//   padding: 8px 16px;
+//   border-radius: 8px;
+//   letter-spacing: 1px;
+// `;
+
+// // Enhanced section title
+// const EnhancedSectionTitle = styled.h2`
+//   color: #333;
+//   font-weight: 700;
+//   text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.8);
+//   background-color: rgba(255, 255, 255, 0.7);
+//   padding: 6px 12px;
+//   border-radius: 6px;
+//   display: inline-block;
+// `;
+
+// const LogoutButton = styled.button`
+//   padding: 8px 16px; 
+//   background-color: #ff4444; 
+//   color: white;
+//   border: none; 
+//   border-radius: 4px; 
+//   cursor: pointer;
+//   font-weight: 600;
+//   &:hover { background-color: #cc0000; }
+// `;
+
+// const InfoSection = styled.div`margin-bottom: 30px;`;
+// const InfoCard = styled.div`
+//   background-color: #f8f9fa; 
+//   padding: 20px; 
+//   border-radius: 8px;
+//   text-align: center;
+//   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+// `;
+
+// const CodeDisplay = styled.div`
+//   font-size: 24px; 
+//   font-weight: bold; 
+//   color: #5a7af0; 
+//   margin: 10px 0;
+// `;
+
+// const Section = styled.div`margin-bottom: 30px;`;
+// const SectionHeader = styled.div`
+//   display: flex; 
+//   justify-content: space-between; 
+//   align-items: center;
+//   margin-bottom: 20px;
+// `;
+
+// const AddChildSection = styled.div`margin-bottom: 20px;`;
+// const InputGroup = styled.div`display: flex; gap: 10px; margin-bottom: 10px;`;
+// const Input = styled.input`
+//   padding: 10px; 
+//   border: 1px solid #ddd; 
+//   border-radius: 4px; 
+//   flex: 1;
+// `;
+
+// const Button = styled.button`
+//   padding: 10px 20px; 
+//   background-color: #5a7af0;
+//   color: white; 
+//   border: none; 
+//   border-radius: 4px; 
+//   cursor: pointer;
+//   font-weight: 600;
+//   &:hover { background-color: #4a6ad0; }
+// `;
+
+// const ErrorMessage = styled.div`
+//   color: #e74c3c; 
+//   background: #fdeaea; 
+//   padding: 0.8rem;
+//   border-radius: 8px; 
+//   text-align: center;
+// `;
+
+// const EmptyState = styled.div`
+//   text-align: center; 
+//   padding: 40px; 
+//   background-color: #f8f9fa;
+//   border-radius: 8px; 
+//   color: #666;
+// `;
+
+// const ChildrenGrid = styled.div`
+//   display: grid; 
+//   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+//   gap: 20px;
+// `;
+
+// const ChildCard = styled.div`
+//   background-color: white; 
+//   padding: 20px; 
+//   border-radius: 8px;
+//   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+//   h3 { margin: 0 0 10px 0; color: #333; }
+//   p { margin: 5px 0; color: #666; }
+// `;
+
+// const ActionButton = styled.button`
+//   padding: 8px 16px; 
+//   background-color: #6e8efb; 
+//   color: white;
+//   border: none; 
+//   border-radius: 4px; 
+//   cursor: pointer; 
+//   margin-top: 10px; 
+//   width: 100%;
+//   font-weight: 600;
+//   &:hover { background-color: #5a7af0; }
+// `;
+
+// export default TherapistDashboard;
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
+// Types/interfaces
+interface Session {
+  sessionId: string;
+  date: Date | string;
+  assignedThemes: string[];
+  themesChanged: string[];
+  emotionsOfChild: string[];
+  playedPuzzles: string[];
+}
+
 interface Child {
   username: string;
   joinedAt: string;
-  assignedThemes: string[];
+  sessions?: Session[];
+  assignedThemes?: string[];
+  currentAssignedThemes?: string[];
 }
+
+// Add ThemeTransition type
+type ThemeTransition = {
+  type: 'start' | 'transition';
+  theme?: string;
+  from?: string;
+  to?: string;
+  emotion: string;
+  isSameTheme?: boolean;
+};
 
 const TherapistDashboard: React.FC = () => {
   const [therapistUsername, setTherapistUsername] = useState('');
@@ -15,17 +339,26 @@ const TherapistDashboard: React.FC = () => {
   const [newChildUsername, setNewChildUsername] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedChild, setSelectedChild] = useState<Child | null>(null);
   const navigate = useNavigate();
 
+  // Apply background on mount
   useEffect(() => {
+    document.body.style.backgroundImage = "url('/images/bg-6.jpg')";
+    document.body.style.backgroundSize = "cover";
+    document.body.style.backgroundPosition = "center";
+    document.body.style.backgroundRepeat = "no-repeat";
+    document.body.style.backgroundAttachment = "fixed";
+    document.body.style.margin = "0";
+    document.body.style.padding = "0";
+    document.body.style.minHeight = "100vh";
+
     const username = sessionStorage.getItem('therapistUsername');
     const code = sessionStorage.getItem('therapistCode');
-
     if (!username || !code) {
       navigate('/');
       return;
     }
-
     setTherapistUsername(username);
     setTherapistCode(code);
     fetchTherapistData(username);
@@ -95,8 +428,85 @@ const TherapistDashboard: React.FC = () => {
     navigate('/');
   };
 
-  if (loading) return <Container>Loading...</Container>;
-  if (error) return <Container>Error: {error}</Container>;
+  const handleChildClick = (child: Child) => {
+    setSelectedChild(selectedChild?.username === child.username ? null : child);
+  };
+
+  // Get emotion color for visual indication
+  const getEmotionColor = (emotion: string | undefined | null): string => {
+    const emotionColors: { [key: string]: string } = {
+      happy: '#4CAF50',
+      sad: '#5C6BC0',
+      angry: '#F44336',
+      scared: '#FF9800',
+      neutral: '#9E9E9E',
+      surprised: '#8E24AA',
+      excited: '#FFD600',
+      calm: '#03A9F4',
+      unknown: '#9E9E9E',
+    };
+    if (typeof emotion !== 'string') {
+      return emotionColors.unknown;
+    }
+    const normalizedEmotion = emotion.toLowerCase();
+    for (const key in emotionColors) {
+      if (normalizedEmotion.includes(key)) {
+        return emotionColors[key];
+      }
+    }
+    return emotionColors.unknown;
+  };
+
+  // Helper function to process theme transitions for display
+  const processThemeTransitions = (session: Session): ThemeTransition[] => {
+    if (!session.assignedThemes || session.assignedThemes.length === 0) {
+      return [];
+    }
+
+    const firstTheme = session.assignedThemes[0];
+    const results: ThemeTransition[] = [{
+      type: 'start',
+      theme: firstTheme,
+      emotion: session.emotionsOfChild?.[0] || 'unknown'
+    } as ThemeTransition];
+
+    if (session.themesChanged && session.themesChanged.length > 0) {
+      let currentTheme = firstTheme;
+
+      for (let i = 0; i < session.themesChanged.length; i++) {
+        const nextTheme = session.themesChanged[i];
+        const emotion = i + 1 < session.emotionsOfChild.length
+          ? session.emotionsOfChild[i + 1]
+          : 'unknown';
+
+        results.push({
+          type: 'transition',
+          from: currentTheme,
+          to: nextTheme,
+          emotion: emotion,
+          isSameTheme: currentTheme === nextTheme
+        } as ThemeTransition);
+
+        currentTheme = nextTheme;
+      }
+    }
+    return results;
+  };
+
+  // Format date for better display
+  const formatSessionDate = (dateString: string | Date) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+  };
+
+  if (loading) return <LoadingContainer>Loading...</LoadingContainer>;
+  if (error) return <ErrorContainer>Error: {error}</ErrorContainer>;
 
   return (
     <Container>
@@ -136,14 +546,138 @@ const TherapistDashboard: React.FC = () => {
         ) : (
           <ChildrenGrid>
             {children.map((child) => (
-              <ChildCard key={child.username}>
-                <h3>{child.username}</h3>
-                <p>Joined: {new Date(child.joinedAt).toLocaleDateString()}</p>
-                <p>Assigned Themes: {child.assignedThemes?.length || 0}</p>
-                <ActionButton onClick={() => handleAssignThemes(child.username)}>
-                  Assign Themes
-                </ActionButton>
-              </ChildCard>
+              <React.Fragment key={child.username}>
+                <ChildCard 
+                  onClick={() => handleChildClick(child)} 
+                  isSelected={selectedChild?.username === child.username}
+                >
+                  <ChildCardHeader>
+                    <h3>{child.username}</h3>
+                    <SessionsCount>{child.sessions?.length || 0} Sessions</SessionsCount>
+                  </ChildCardHeader>
+                  <ChildCardContent>
+                    <p>Joined: {new Date(child.joinedAt).toLocaleDateString()}</p>
+                    <ThemesWrapper>
+                      <p>Assigned Themes: </p>
+                      <ThemesList>
+                        {(child.currentAssignedThemes?.length || child.assignedThemes?.length) ? 
+                          (child.currentAssignedThemes || child.assignedThemes)?.map((theme, idx) => (
+                            <ThemeTag key={idx}>{theme}</ThemeTag>
+                          ))
+                          : <ThemeTag empty>None</ThemeTag>
+                        }
+                      </ThemesList>
+                    </ThemesWrapper>
+                  </ChildCardContent>
+                  <ActionButton
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAssignThemes(child.username);
+                    }}
+                  >
+                    Assign Themes
+                  </ActionButton>
+                </ChildCard>
+
+                {selectedChild?.username === child.username && (
+                  <SessionsContainer>
+                    <SessionsContainerHeader>
+                      <h4>Sessions History</h4>
+                      <SessionsCount>Total: {child.sessions?.length || 0}</SessionsCount>
+                    </SessionsContainerHeader>
+                    
+                    {!child.sessions || child.sessions.length === 0 ? (
+                      <EmptySessionsState>
+                        <NoSessionsIcon>📊</NoSessionsIcon>
+                        <p>No sessions recorded yet</p>
+                      </EmptySessionsState>
+                    ) : (
+                      <SessionsList>
+                        {child.sessions.map((session: Session) => {
+                          const themeTransitions = processThemeTransitions(session);
+                          return (
+                            <SessionCard key={session.sessionId}>
+                              <SessionHeader>
+                                <SessionDate>
+                                  <CalendarIcon>📅</CalendarIcon>
+                                  {formatSessionDate(session.date)}
+                                </SessionDate>
+                                <SessionStats>
+                                  <StatBadge>
+                                    <StatIcon>🧩</StatIcon>
+                                    {session.playedPuzzles?.length || 0} Puzzles
+                                  </StatBadge>
+                                  <StatBadge>
+                                    <StatIcon>🎭</StatIcon>
+                                    {themeTransitions.length} Transitions
+                                  </StatBadge>
+                                </SessionStats>
+                              </SessionHeader>
+                              
+                              <SessionBody>
+                                <SessionSection>
+                                  <SectionTitle>Themes</SectionTitle>
+                                  <ThemeWrapper>
+                                    {session.assignedThemes?.map((theme, idx) => (
+                                      <ThemeTag key={idx}>{theme}</ThemeTag>
+                                    )) || <p>None</p>}
+                                  </ThemeWrapper>
+                                </SessionSection>
+                                
+                                {themeTransitions.length > 0 && (
+                                  <SessionSection>
+                                    <SectionTitle>Theme Journey</SectionTitle>
+                                    <ThemeJourneyTimeline>
+                                      {themeTransitions.map((transition, index) => {
+                                        const emotionColor = getEmotionColor(transition.emotion);
+                                        
+                                        if (transition.type === 'start') {
+                                          return (
+                                            <TimelineItem key={`start-${index}`} isFirst={true}>
+                                              <TimelineConnector isFirst={true} />
+                                              <TimelineBubble color={emotionColor}>
+                                                <EmotionIndicator color={emotionColor} />
+                                              </TimelineBubble>
+                                              <TimelineContent>
+                                                <TimelineTitle>Started with: {transition.theme}</TimelineTitle>
+                                                <TimelineDetail>Emotion: {transition.emotion}</TimelineDetail>
+                                              </TimelineContent>
+                                            </TimelineItem>
+                                          );
+                                        } else {
+                                          return (
+                                            <TimelineItem key={`transition-${index}`}>
+                                              <TimelineConnector />
+                                              <TimelineBubble color={emotionColor}>
+                                                <EmotionIndicator color={emotionColor} />
+                                              </TimelineBubble>
+                                              <TimelineContent>
+                                                <TimelineTitle>
+                                                  {transition.from}{' '}
+                                                  {transition.isSameTheme ? 
+                                                    <StayedIndicator>(stayed)</StayedIndicator> : 
+                                                    <TransitionArrow>→</TransitionArrow>
+                                                  }{' '}
+                                                  {!transition.isSameTheme && transition.to}
+                                                </TimelineTitle>
+                                                <TimelineDetail>Emotion: {transition.emotion}</TimelineDetail>
+                                              </TimelineContent>
+                                            </TimelineItem>
+                                          );
+                                        }
+                                      })}
+                                    </ThemeJourneyTimeline>
+                                  </SessionSection>
+                                )}
+                              </SessionBody>
+                            </SessionCard>
+                          );
+                        })}
+                      </SessionsList>
+                    )}
+                  </SessionsContainer>
+                )}
+              </React.Fragment>
             ))}
           </ChildrenGrid>
         )}
@@ -152,59 +686,485 @@ const TherapistDashboard: React.FC = () => {
   );
 };
 
-const Container = styled.div`padding: 20px; max-width: 1200px; margin: 0 auto;`;
-const Header = styled.div`display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;`;
-const Title = styled.h1`color: #333; margin: 0;`;
+// Styled Components
+const Container = styled.div`
+  padding: 20px; 
+  max-width: 1200px; 
+  margin: 0 auto;
+`;
+
+const Header = styled.div`
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  margin-bottom: 30px;
+`;
+
+const Title = styled.h1`
+  color: #333; 
+  margin: 0;
+  font-weight: 800;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+`;
+
 const LogoutButton = styled.button`
-  padding: 8px 16px; background-color: #ff4444; color: white;
-  border: none; border-radius: 4px; cursor: pointer;
-  &:hover { background-color: #cc0000; }
+  padding: 8px 16px; 
+  background-color: #ff4444; 
+  color: white;
+  border: none; 
+  border-radius: 4px; 
+  cursor: pointer;
+  transition: all 0.2s ease;
+  &:hover { 
+    background-color: #cc0000; 
+    transform: translateY(-2px);
+  }
 `;
-const InfoSection = styled.div`margin-bottom: 30px;`;
+
+const InfoSection = styled.div`
+  margin-bottom: 30px;
+`;
+
 const InfoCard = styled.div`
-  background-color: #f8f9fa; padding: 20px; border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 20px; 
+  border-radius: 12px;
   text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(10px);
 `;
+
 const CodeDisplay = styled.div`
-  font-size: 24px; font-weight: bold; color: #5a7af0; margin: 10px 0;
+  font-size: 28px; 
+  font-weight: bold; 
+  color: #5a7af0; 
+  margin: 15px 0;
+  letter-spacing: 1px;
 `;
-const Section = styled.div`margin-bottom: 30px;`;
+
+const Section = styled.div`
+  margin-bottom: 30px;
+`;
+
 const SectionHeader = styled.div`
-  display: flex; justify-content: space-between; align-items: center;
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center;
   margin-bottom: 20px;
+  h2 {
+    font-weight: 800;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+  }
 `;
-const AddChildSection = styled.div`margin-bottom: 20px;`;
-const InputGroup = styled.div`display: flex; gap: 10px; margin-bottom: 10px;`;
+
+const AddChildSection = styled.div`
+  margin-bottom: 25px;
+`;
+
+const InputGroup = styled.div`
+  display: flex; 
+  gap: 10px; 
+  margin-bottom: 10px;
+`;
+
 const Input = styled.input`
-  padding: 10px; border: 1px solid #ddd; border-radius: 4px; flex: 1;
+  padding: 12px 15px; 
+  border: 1px solid #ddd; 
+  border-radius: 8px; 
+  flex: 1;
+  font-size: 16px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  
+  &:focus {
+    outline: none;
+    border-color: #5a7af0;
+    box-shadow: 0 0 0 2px rgba(90, 122, 240, 0.2);
+  }
 `;
+
 const Button = styled.button`
-  padding: 10px 20px; background-color: #5a7af0;
-  color: white; border: none; border-radius: 4px; cursor: pointer;
-  &:hover { background-color: #5a7af0; }
+  padding: 12px 20px; 
+  background-color: #5a7af0;
+  color: white; 
+  border: none; 
+  border-radius: 8px; 
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  
+  &:hover { 
+    background-color: #4a67cc; 
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(90, 122, 240, 0.3);
+  }
 `;
+
 const ErrorMessage = styled.div`
-  color: #e74c3c; background: #fdeaea; padding: 0.8rem;
-  border-radius: 8px; text-align: center;
+  color: #e74c3c; 
+  background: #fdeaea; 
+  padding: 0.8rem;
+  border-radius: 8px; 
+  text-align: center;
+  border-left: 4px solid #e74c3c;
 `;
+
 const EmptyState = styled.div`
-  text-align: center; padding: 40px; background-color: #f8f9fa;
-  border-radius: 8px; color: #666;
+  text-align: center; 
+  padding: 40px; 
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 12px; 
+  color: #666;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 `;
+
 const ChildrenGrid = styled.div`
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  display: grid; 
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 25px;
+`;
+
+const ChildCard = styled.div<{ isSelected?: boolean }>`
+  background-color: rgba(255, 255, 255, 0.95);
+  padding: 20px; 
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-left: ${props => props.isSelected ? '5px solid #5a7af0' : '5px solid transparent'};
+  position: relative;
+  overflow: hidden;
+  
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  }
+  
+  &:after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60px;
+    height: 60px;
+    background: ${props => props.isSelected ? '#5a7af0' : 'transparent'};
+    transition: all 0.3s ease;
+    clip-path: polygon(0 0, 100% 0, 100% 100%);
+    opacity: 0.1;
+  }
+`;
+
+const ChildCardHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  
+  h3 {
+    margin: 0;
+    color: #333;
+    font-size: 18px;
+    font-weight: 700;
+  }
+`;
+
+const ChildCardContent = styled.div`
+  p {
+    margin: 8px 0;
+    color: #555;
+    font-size: 14px;
+  }
+`;
+
+const ThemesWrapper = styled.div`
+  margin-top: 12px;
+  
+  p {
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+`;
+
+const ThemesList = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+`;
+
+const ThemeTag = styled.span<{ empty?: boolean }>`
+  background-color: ${props => props.empty ? '#f0f0f0' : '#e9efff'};
+  color: ${props => props.empty ? '#999' : '#5a7af0'};
+  padding: 4px 10px;
+  border-radius: 30px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-block;
+`;
+
+const ThemeWrapper = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+`;
+
+const SessionsCount = styled.span`
+  background-color: #f0f4ff;
+  color: #5a7af0;
+  padding: 4px 10px;
+  border-radius: 30px;
+  font-size: 12px;
+  font-weight: 600;
+`;
+
+const ActionButton = styled.button`
+  padding: 10px 16px; 
+  background-color: #6e8efb; 
+  color: white;
+  border: none; 
+  border-radius: 8px; 
+  cursor: pointer; 
+  margin-top: 15px; 
+  width: 100%;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  
+  &:hover { 
+    background-color: #5a7af0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(90, 122, 240, 0.3);
+  }
+`;
+
+const SessionsContainer = styled.div`
+  grid-column: 1 / -1;
+  padding: 30px;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  margin-top: -10px;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(10px);
+`;
+
+const SessionsContainerHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+  
+  h4 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #333;
+  }
+`;
+
+const EmptySessionsState = styled.div`
+  text-align: center;
+  padding: 40px;
+  color: #888;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  
+  p {
+    margin-top: 10px;
+    font-size: 16px;
+  }
+`;
+
+const NoSessionsIcon = styled.div`
+  font-size: 36px;
+  margin-bottom: 10px;
+`;
+
+const SessionsList = styled.div`
+  display: grid;
   gap: 20px;
 `;
-const ChildCard = styled.div`
-  background-color: white; padding: 20px; border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  h3 { margin: 0 0 10px 0; color: #333; }
-  p { margin: 5px 0; color: #666; }
+
+const SessionCard = styled.div`
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+  }
 `;
-const ActionButton = styled.button`
-  padding: 8px 16px; background-color: #6e8efb; color: white;
-  border: none; border-radius: 4px; cursor: pointer; margin-top: 10px; width: 100%;
-  &:hover { background-color: #5a7af0; }
+
+const SessionHeader = styled.div`
+  background-color: #f7f9ff;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eef2ff;
+`;
+
+const SessionDate = styled.div`
+  display: flex;
+  align-items: center;
+  color: #5a7af0;
+  font-weight: 600;
+  font-size: 14px;
+`;
+
+const CalendarIcon = styled.span`
+  margin-right: 8px;
+  font-size: 16px;
+`;
+
+const SessionStats = styled.div`
+  display: flex;
+  gap: 12px;
+`;
+
+const StatBadge = styled.div`
+  display: flex;
+  align-items: center;
+  background-color: #e9efff;
+  color: #5a7af0;
+  padding: 5px 10px;
+  border-radius: 30px;
+  font-size: 12px;
+  font-weight: 600;
+`;
+
+const StatIcon = styled.span`
+  margin-right: 4px;
+  font-size: 14px;
+`;
+
+const SessionBody = styled.div`
+  padding: 20px;
+`;
+
+const SessionSection = styled.div`
+  margin-bottom: 25px;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+`;
+
+const SectionTitle = styled.h5`
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  display: flex;
+  align-items: center;
+  
+  &:after {
+    content: "";
+    flex-grow: 1;
+    height: 1px;
+    background-color: #eee;
+    margin-left: 10px;
+  }
+`;
+
+const ThemeJourneyTimeline = styled.div`
+  position: relative;
+  margin-left: 10px;
+`;
+
+const TimelineItem = styled.div<{ isFirst?: boolean }>`
+  position: relative;
+  padding-left: 30px;
+  padding-bottom: ${props => props.isFirst ? '25px' : '20px'};
+  
+  &:last-child {
+    padding-bottom: 0;
+  }
+`;
+
+const TimelineConnector = styled.div<{ isFirst?: boolean }>`
+  position: absolute;
+  left: 10px;
+  top: ${props => props.isFirst ? '28px' : '0'};
+  bottom: 0;
+  width: 2px;
+  background-color: #eef2ff;
+`;
+
+const TimelineBubble = styled.div<{ color: string }>`
+  position: absolute;
+  left: 0;
+  top: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: white;
+  border: 2px solid #eef2ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+`;
+
+const EmotionIndicator = styled.div<{ color: string }>`
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: ${props => props.color};
+`;
+
+const TimelineContent = styled.div`
+  background-color: #f7f9ff;
+  border-radius: 8px;
+  padding: 12px 15px;
+`;
+
+const TimelineTitle = styled.div`
+  font-weight: 600;
+  color: #333;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+`;
+
+const TimelineDetail = styled.div`
+  color: #666;
+  font-size: 13px;
+  margin-top: 6px;
+`;
+
+const StayedIndicator = styled.span`
+  color: #888;
+  font-size: 12px;
+  font-weight: normal;
+`;
+
+const TransitionArrow = styled.span`
+  color: #5a7af0;
+  font-weight: bold;
+`;
+
+const LoadingContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 18px;
+  color: #5a7af0;
+`;
+
+const ErrorContainer = styled.div`
+  max-width: 600px;
+  margin: 100px auto;
+  padding: 20px;
+  background-color: #fdeaea;
+  border-left: 4px solid #e74c3c;
+  border-radius: 8px;
+  color: #e74c3c;
 `;
 
 export default TherapistDashboard;

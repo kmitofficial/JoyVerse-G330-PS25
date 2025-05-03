@@ -33,9 +33,10 @@ const ChildLogin: React.FC = () => {
         if (response.ok) {
           sessionStorage.setItem('childData', JSON.stringify({
             username: childName,
-            assignedThemes: data.assignedThemes || []
+            therapistCode: code, // save the therapist code for API calls
+            assignedThemes: data.assignedThemes || [],
+            sessionId: data.sessionId // <-- this is critical!
           }));
-          
           navigate('/landing');
         } else {
           setError(data.message || 'Login failed');
@@ -52,39 +53,39 @@ const ChildLogin: React.FC = () => {
 
   return (
     <Container>
-      <FormCard>
-        <Title>
-          Welcome, Young Explorer! 
-          <span role="img" aria-label="star">✨</span>
-        </Title>
-        <Form onSubmit={handleSubmit}>
-          <InputGroup>
-            <Label>Magic Code</Label>
-            <Input
-              type="text"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="Enter your therapist's magic code"
-              required
-            />
-          </InputGroup>
-          <InputGroup>
-            <Label>Your Name</Label>
-            <Input
-              type="text"
-              value={childName}
-              onChange={(e) => setChildName(e.target.value)}
-              placeholder="What should we call you?"
-              required
-            />
-          </InputGroup>
-          {error && <ErrorMessage>{error}</ErrorMessage>}
-          <Button type="submit">
-            Begin Adventure 
-            <span role="img" aria-label="rocket">🚀</span>
-          </Button>
-        </Form>
-      </FormCard>
+      <FormWrapper>
+        <FormCard>
+          <Title>
+            Welcome, Young Explorer! <SparkleIcon>✨</SparkleIcon>
+          </Title>
+          <Form onSubmit={handleSubmit}>
+            <InputGroup>
+              <Label>Magic Code</Label>
+              <StyledInput
+                type="text"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                placeholder="Enter your therapist's magic code"
+                required
+              />
+            </InputGroup>
+            <InputGroup>
+              <Label>Your Name</Label>
+              <StyledInput
+                type="text"
+                value={childName}
+                onChange={(e) => setChildName(e.target.value)}
+                placeholder="What should we call you?"
+                required
+              />
+            </InputGroup>
+            {error && <ErrorMessage>{error}</ErrorMessage>}
+            <ActionButton type="submit">
+              Begin Adventure <RocketIcon>🚀</RocketIcon>
+            </ActionButton>
+          </Form>
+        </FormCard>
+      </FormWrapper>
     </Container>
   );
 };
@@ -106,68 +107,117 @@ const float = keyframes`
   100% { transform: translateY(0px); }
 `;
 
+const pulse = keyframes`
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+`;
+
+// Full screen background with better positioning
 const Container = styled.div`
   min-height: 100vh;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #6e8efb 0%, #a777e3 100%);
+  background: url('/images/bg-5.jpg') no-repeat center center fixed;
+  background-size: cover;
   padding: 1rem;
+  position: relative;
+  
+  &:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle, rgba(255,255,255,0) 0%, rgba(114,198,255,0.2) 100%);
+  }
 `;
 
+// Added a wrapper to create better visual hierarchy
+const FormWrapper = styled.div`
+  width: 100%;
+  max-width: 460px;
+  padding: 20px;
+  position: relative;
+  z-index: 2;
+`;
+
+// Improved card with better styling and rounded corners
 const FormCard = styled.div`
   background: rgba(255, 255, 255, 0.95);
-  padding: 2rem;
-  border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 400px;
+  padding: 2.5rem;
+  border-radius: 25px;
+  box-shadow: 0 15px 35px rgba(50, 50, 93, 0.1), 0 5px 15px rgba(0, 0, 0, 0.07);
   animation: ${fadeIn} 0.6s ease-out;
+  border: 8px solid white;
 `;
 
+// More playful title with better typography
 const Title = styled.h1`
   text-align: center;
-  color: #333;
+  color: #4A6AD0;
   margin-bottom: 2rem;
-  font-size: 1.8rem;
-  
-  span {
-    display: inline-block;
-    margin-left: 8px;
-    animation: ${float} 2s ease-in-out infinite;
-  }
+  font-size: 2rem;
+  font-weight: 700;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  line-height: 1.3;
+`;
+
+const SparkleIcon = styled.span`
+  display: inline-block;
+  margin-left: 8px;
+  animation: ${float} 2s ease-in-out infinite;
+  font-size: 1.2em;
+`;
+
+const RocketIcon = styled.span`
+  display: inline-block;
+  margin-left: 5px;
+  animation: ${float} 3s ease-in-out infinite;
+  font-size: 1.2em;
 `;
 
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.8rem;
 `;
 
 const InputGroup = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.6rem;
   animation: ${fadeIn} 0.6s ease-out;
 `;
 
+// More consistent label styling
 const Label = styled.label`
-  color: #666;
-  font-size: 1rem;
-  font-weight: 500;
+  color: #555;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-left: 5px;
 `;
 
-const Input = styled.input`
-  padding: 1rem;
-  border: 2px solid #ddd;
-  border-radius: 10px;
+// Improved input styling with consistent rounding and focus states
+const StyledInput = styled.input`
+  padding: 1.1rem;
+  border: 2px solid #c3d5ff;
+  border-radius: 15px;
   font-size: 1rem;
   transition: all 0.3s ease;
+  background-color: rgba(255, 255, 255, 0.9);
 
   &:focus {
     outline: none;
     border-color: #6e8efb;
-    box-shadow: 0 0 0 3px rgba(110, 142, 251, 0.1);
+    box-shadow: 0 0 0 4px rgba(110, 142, 251, 0.15);
+    background-color: white;
   }
 
   &::placeholder {
@@ -175,47 +225,45 @@ const Input = styled.input`
   }
 `;
 
-const Button = styled.button`
-  padding: 1rem;
+// More prominent and playful button
+const ActionButton = styled.button`
+  padding: 1.2rem;
   background: linear-gradient(135deg, #6e8efb 0%, #a777e3 100%);
   color: white;
   border: none;
-  border-radius: 10px;
-  font-size: 1.1rem;
-  font-weight: 600;
+  border-radius: 15px;
+  font-size: 1.2rem;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  margin-top: 0.5rem;
+  letter-spacing: 0.5px;
+  box-shadow: 0 8px 15px rgba(110, 142, 251, 0.3);
+  animation: ${pulse} 4s infinite ease-in-out;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(110, 142, 251, 0.4);
+    background: linear-gradient(135deg, #5a7af0 0%, #9566d2 100%);
   }
 
   &:active {
     transform: translateY(0);
-  }
-
-  span {
-    display: inline-block;
-    transition: transform 0.3s ease;
-  }
-
-  &:hover span {
-    transform: translateX(4px);
   }
 `;
 
 const ErrorMessage = styled.div`
   color: #ff4444;
   text-align: center;
-  font-size: 0.9rem;
-  padding: 0.5rem;
-  border-radius: 8px;
+  font-size: 0.95rem;
+  padding: 0.7rem;
+  border-radius: 12px;
   background: rgba(255, 68, 68, 0.1);
+  border: 1px solid rgba(255, 68, 68, 0.2);
   animation: ${fadeIn} 0.3s ease-out;
 `;
 
