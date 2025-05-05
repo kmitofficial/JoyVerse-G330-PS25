@@ -197,46 +197,37 @@ const FAQ = () => {
 
         <div style={styles.faqSection}>
           <div style={styles.questionBlock}>
-            <h2 style={styles.question}>🎯 How does virtual therapy work on your platform?</h2>
+            <h2 style={styles.question}> How does JoyVerse ensure personalized learning experiences for each child?</h2>
             <p style={styles.answer}>
-              Our platform provides secure video sessions, interactive tools, and engaging activities 
-              designed specifically for children's therapy. Sessions are conducted in real-time with 
-              licensed therapists using child-friendly interfaces and activities.
+            JoyVerse tailors gameplay based on both therapist-assigned themes and real-time emotional feedback. It adjusts puzzle complexity, visual environments, and reinforcement mechanisms to each child's needs, promoting better retention and minimizing cognitive overload.
             </p>
           </div>
 
           <div style={styles.questionBlock}>
-            <h2 style={styles.question}>🔒 What security measures are in place?</h2>
+            <h2 style={styles.question}>Can the game be replayed multiple times without losing its novelty for children?</h2>
             <p style={styles.answer}>
-              We implement bank-level encryption, HIPAA-compliant video sessions, and strict data 
-              protection protocols. All therapists undergo thorough background checks, and we regularly 
-              audit our security systems to ensure the highest level of protection.
+            Yes. JoyVerse randomizes theme assignments and puzzle content on every replay, and it uses emotional context to vary visual feedback and challenge levels. This ensures novelty and keeps the child engaged with fresh stimuli each session.
             </p>
           </div>
 
           <div style={styles.questionBlock}>
-            <h2 style={styles.question}>🎨 What types of activities are available?</h2>
+            <h2 style={styles.question}>How are therapists supported in analyzing a child’s progress on JoyVerse?</h2>
             <p style={styles.answer}>
-              We offer a wide range of therapeutic activities including art therapy, music interaction, 
-              storytelling, emotional recognition games, and mindfulness exercises. All activities are 
-              age-appropriate and can be customized by therapists.
+            Therapists have access to a secure dashboard that displays child progress, emotional trends over time, and game performance. This helps them make informed decisions about intervention strategies and theme adjustments.
             </p>
           </div>
 
           <div style={styles.questionBlock}>
-            <h2 style={styles.question}>📱 Can we access sessions from multiple devices?</h2>
+            <h2 style={styles.question}> What are the future scalability plans for JoyVerse?</h2>
             <p style={styles.answer}>
-              Yes! Our platform works seamlessly across desktop computers, tablets, and mobile devices. 
-              You can switch devices during a session if needed, and all progress is automatically saved.
+            JoyVerse plans to expand its AI capabilities to include speech recognition and personalized reading feedback. Additionally, it will introduce multi-language support, integrate with school LMS platforms, and offer predictive analytics for therapist insights.
             </p>
           </div>
 
           <div style={styles.questionBlock}>
-            <h2 style={styles.question}>🌈 What age groups do you support?</h2>
+            <h2 style={styles.question}>What age groups do you support?</h2>
             <p style={styles.answer}>
-              Our platform is designed for children aged 6-10, with age-appropriate activities and 
-              interfaces for different developmental stages. We also provide special resources for 
-              parents and guardians.
+            JoyVerse is designed primarily for children aged 6 to 10, especially those with dyslexia or related learning differences. The game mechanics, vocabulary, visual design, and emotional feedback system are all optimized to support early literacy and cognitive development within this age range. Future versions aim to extend support to older children and early teens through adaptive difficulty and advanced game modules.
             </p>
           </div>
         </div>
