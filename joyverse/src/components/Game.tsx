@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 import * as tf from '@tensorflow/tfjs';
 import * as facemesh from '@tensorflow-models/facemesh';
-import { debounce } from 'lodash';
+
 
 
 // --- Types ---
@@ -624,10 +624,10 @@ useEffect(() => {
       style={
         showThemeComplete
           ? {
-              backgroundImage: `url(${soothingChampionImage})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center center',
-              backgroundRepeat: 'no-repeat',
+              backgroundImage: `url('/images/bg-8.jpg')`,
+              backgroundSize: 'cover', // Ensures the image fills the screen
+              backgroundPosition: 'center', // Centers the image
+              backgroundRepeat: 'no-repeat', // Prevents tiling
               width: '100vw',
               height: '100vh',
               minHeight: '100vh',
@@ -637,7 +637,13 @@ useEffect(() => {
               top: 0,
               zIndex: 0,
             }
-          : {}
+          : {
+              backgroundImage: `url('/images/${currentTheme}.jpg')`,
+              backgroundSize: 'cover', // Ensures the image fills the screen
+              backgroundPosition: 'center', // Centers the image
+              backgroundRepeat: 'no-repeat', // Prevents tiling
+              backgroundColor: 'lightblue', // Fallback color
+            }
       }
     >
             <video ref={videoRef} style={{ display: 'none' }} playsInline muted/>
@@ -831,3 +837,4 @@ useEffect(() => {
 };
 
 export default Game; 
+
