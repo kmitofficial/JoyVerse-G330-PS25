@@ -496,7 +496,7 @@ const preparePuzzleData = (session: Session) => {
       happy: '#4CAF50',
       sad: '#5C6BC0',
       anger: '#FF0000',
-      scared: '#FF9800',
+      fear: '#FF9800',
       neutral: '#9E9E9E',
       surprised: '#8E24AA',
       excited: '#FFD600',
@@ -784,25 +784,7 @@ const preparePuzzleData = (session: Session) => {
                                 {session.playedPuzzles && session.playedPuzzles.length > 0 && (
                                   <SessionSection>
                                     <SectionTitle>Puzzles Played</SectionTitle>
-                                    <ChartContainer>
-                                      <ChartTitle>Puzzle Engagement</ChartTitle>
-                                      <ResponsiveContainer width="100%" height={250}>
-                                        <BarChart
-                                          data={preparePuzzleData(session)}
-                                          margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
-                                        >
-                                          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                                          <XAxis dataKey="name" />
-                                          <YAxis />
-                                          <Tooltip />F
-                                          <Bar 
-                                            dataKey="count" 
-                                            fill="#82ca9d" 
-                                            radius={[4, 4, 0, 0]}
-                                          />
-                                        </BarChart>
-                                      </ResponsiveContainer>
-                                    </ChartContainer>
+                                    <div>{session.playedPuzzles.length || 0}</div>
                                   </SessionSection>
                                 )}
                               </SessionBody>
