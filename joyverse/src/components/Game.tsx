@@ -3,12 +3,12 @@ import { useParams, useNavigate,useLocation } from 'react-router-dom';
 import Confetti from 'react-confetti';
 import { ArrowRight, Home, AlertCircle, Trophy, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import axios from 'axios';
 
 import * as tf from '@tensorflow/tfjs';
 import * as facemesh from '@tensorflow-models/facemesh';
 
-
-
+//import data/joyverse.wordlists.json to joyverse collection in mongodb
 // --- Types ---
 type WordList = {
   word: string;
@@ -16,126 +16,14 @@ type WordList = {
 };
 
 type ThemeLevel = {
-  1: WordList[];
-  2: WordList[];
-  3: WordList[];
+  [key: number]: WordList[];
 };
 
 type WordLists = {
-  underwater: ThemeLevel;
-  space: ThemeLevel;
-  forest: ThemeLevel;
-  playground: ThemeLevel;
-  kitchen: ThemeLevel;
+  [key: string]: ThemeLevel;
 };
 
 type Params = Record<string, string | undefined>;
-
-// --- Data ---
-const wordLists: WordLists = {
-  underwater: {
-    1: [
-      { word: 'SEA', image: '/images/sea.jpg' },
-      { word: 'NET', image: '/images/net.jpg' },
-      { word: 'ICE', image: '/images/ice.jpg' },
-      { word: 'EEL', image: '/images/eel.jpg' }
-    ],
-    2: [
-      { word: 'FISH', image: '/images/fish.jpg' },
-      { word: 'SAND', image: '/images/sand.jpg' },
-      { word: 'WAVE', image: '/images/wave.jpg' },
-      { word: 'SHIP', image: '/images/ship.jpg' }
-    ],
-    3: [
-      { word: 'WHALE', image: '/images/whale.jpg' },
-      { word: 'SHARK', image: '/images/shark.jpg' },
-      { word: 'SHELL', image: '/images/shell.jpg' },
-      { word: 'OCEAN', image: '/images/ocean.jpg' }
-    ],
-  },
-  space: {
-    1: [
-      { word: 'SUN', image: '/images/sun.jpg' },
-      { word: 'UFO', image: '/images/ufo.jpg' },
-      { word: 'SKY', image: '/images/sky.jpg' },
-      { word: 'GAS', image: '/images/gas.jpg' }
-    ],
-    2: [
-      { word: 'MOON', image: '/images/moon.jpg' },
-      { word: 'MARS', image: '/images/mars.jpg' },
-      { word: 'STAR', image: '/images/star.jpg' },
-      { word: 'ROCK', image: '/images/rock.jpg' }
-    ],
-    3: [
-      { word: 'VENUS', image: '/images/venus.jpg' },
-      { word: 'EARTH', image: '/images/earth.jpg' },
-      { word: 'SPACE', image: '/images/space1.jpg' },
-      { word: 'COMET', image: '/images/comet.jpg' }
-    ],
-  },
-  forest: {
-    1: [
-      { word: 'LOG', image: '/images/log.jpg' },
-      { word: 'MUD', image: '/images/mud.jpg' },
-      { word: 'BUG', image: '/images/bug.jpg' },
-      { word: 'ANT', image: '/images/ant.jpg' }
-    ],
-    2: [
-      { word: 'TREE', image: '/images/tree.jpg' },
-      { word: 'LEAF', image: '/images/leaf.jpg' },
-      { word: 'RAIN', image: '/images/rain.jpg' },
-      { word: 'BIRD', image: '/images/bird.jpg' }
-    ],
-    3: [
-      { word: 'PLANT', image: '/images/plant.jpg' },
-      { word: 'BERRY', image: '/images/berry.jpg' },
-      { word: 'GRASS', image: '/images/grass.jpg' },
-      { word: 'FRUIT', image: '/images/fruit.jpg' }
-    ],
-  },
-  playground: {
-    1: [
-      { word: 'RUN', image: '/images/run.jpg' },
-      { word: 'HOP', image: '/images/hop.jpg' },
-      { word: 'TOY', image: '/images/toy.jpg' },
-      { word: 'TAG', image: '/images/tag.jpg' }
-    ],
-    2: [
-      { word: 'BALL', image: '/images/ball.jpg' },
-      { word: 'PLAY', image: '/images/play.jpg' },
-      { word: 'RIDE', image: '/images/ride.jpg' },
-      { word: 'SAND', image: '/images/sand.jpg' }
-    ],
-    3: [
-      { word: 'CLIMB', image: '/images/climb.jpg' },
-      { word: 'SLIDE', image: '/images/slide.jpg' },
-      { word: 'SWING', image: '/images/swing.jpg' },
-      { word: 'TRAIN', image: '/images/train.jpg' }
-    ],
-  },
-  kitchen: {
-    1: [
-      { word: 'PAN', image: '/images/pan.jpg' },
-      { word: 'CUP', image: '/images/cup.jpg' },
-      { word: 'EGG', image: '/images/egg.jpg' },
-      { word: 'POT', image: '/images/pot.jpg' }
-    ],
-    2: [
-      { word: 'FORK', image: '/images/fork.jpg' },
-      { word: 'MILK', image: '/images/milk.jpg' },
-      { word: 'RICE', image: '/images/rice.jpg' },
-      { word: 'BOWL', image: '/images/bowl.jpg' }
-    ],
-    3: [
-      { word: 'PLATE', image: '/images/plate.jpg' },
-      { word: 'KNIFE', image: '/images/knife.jpg' },
-      { word: 'SPOON', image: '/images/spoon.jpg' },
-      { word: 'MIXER', image: '/images/mixer.jpg' }
-    ],
-  },
-};
-
-const soothingChampionImage = "public\images\bg-7.jpg"; 
 
 const totalPuzzles = 10;
 
@@ -162,6 +50,7 @@ const Game = () => {
   const [wordIndex, setWordIndex] = useState(0);
   const [lastTwoAnswers, setLastTwoAnswers] = useState<string[]>([]);
 const [playedPuzzles, setPlayedPuzzles] = useState<Set<string>>(new Set());
+const [wordLists, setWordLists] = useState<WordLists>({});
 const totalPuzzles = 10;
 const [playedCount, setPlayedCount] = useState<number>(() => {
   const stored = sessionStorage.getItem('playedCount');
@@ -181,6 +70,39 @@ const [sessionId, setSessionId] = useState('');
 const lastSentRef = useRef(Date.now());
 const streamRef = useRef<MediaStream | null>(null);
 const [score,setScore]=useState(0);
+
+
+useEffect(() => {
+  const fetchWordLists = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/wordlists');
+      console.log('Fetched WordLists:', response.data); // Debugging log
+      const fetchedWordLists: WordLists = {};
+
+      response.data.forEach((item: any) => {
+        if (item.wordLists) {
+          Object.keys(item.wordLists).forEach((theme) => {
+            if (!fetchedWordLists[theme]) {
+              fetchedWordLists[theme] = {};
+            }
+  
+            Object.keys(item.wordLists[theme]).forEach((level) => {
+              fetchedWordLists[theme][parseInt(level, 10)] = item.wordLists[theme][level];
+            });
+          });
+        } else {
+          console.warn('Invalid item in wordLists:', item);
+        }
+      });
+      console.log('Processed WordLists:', fetchedWordLists); // Debugging log
+      setWordLists(fetchedWordLists);
+    } catch (error) {
+      console.error('Error fetching word lists:', error);
+    }
+  };
+
+  fetchWordLists();
+}, []);
 
 useEffect(() => {
   if (showThemeComplete) {
@@ -478,7 +400,7 @@ useEffect(() => {
 
   // --- Get word for current state ---
   const levelNum = Number(currentLevel) as 1 | 2 | 3;
-  const currentWord = wordLists[currentTheme as keyof WordLists]?.[levelNum]?.[wordIndex % wordLists[currentTheme as keyof WordLists][levelNum].length];
+  const currentWord = wordLists[currentTheme]?.[levelNum]?.[wordIndex % wordLists[currentTheme][levelNum].length];
   const gridSize = parseInt(currentLevel) < 3 ? 4 : 5;
 
   // --- Generate grid whenever word changes ---
@@ -836,5 +758,5 @@ useEffect(() => {
   );
 };
 
-export default Game; 
+export default Game;
 

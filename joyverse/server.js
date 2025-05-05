@@ -1,5 +1,3 @@
-
-
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
@@ -103,6 +101,19 @@ const faqSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 const FAQ = mongoose.model('FAQ', faqSchema);
+
+const wordListSchema = new mongoose.Schema({
+  theme: { type: String, required: true },
+  level: { type: Number, required: true },
+  words: [
+    {
+      word: { type: String, required: true },
+      image: { type: String, required: true },
+    },
+  ],
+});
+
+const WordList = mongoose.model('WordList', wordListSchema);
 
 // Generate unique 6-digit therapist code
 const generateUniqueCode = async () => {
@@ -788,8 +799,15 @@ app.get('/api/emotion', (req, res) => {
   res.json({ emotion: dominantEmotion });
 });
 
-
-
+app.get('/api/wordlists', async (req, res) => {
+  try {
+    const wordLists = await WordList.find();
+    res.status(200).json(wordLists);
+  } catch (error) {
+    console.error('Error fetching word lists:', error);
+    res.status(500).json({ error: 'Failed to fetch word lists' });
+  }
+});
 
 // Start the server
 app.listen(port, () => {
