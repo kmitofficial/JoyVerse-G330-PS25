@@ -303,7 +303,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-
+import { PieChart, BarChart, Bar, Pie, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Cell } from 'recharts';
 // Types/interfaces
 interface Session {
   sessionId: string;
@@ -416,7 +417,39 @@ const TherapistDashboard: React.FC = () => {
       console.error('Error adding child:', err);
     }
   };
+// Helper to prepare emotion data for chart
+const prepareEmotionData = (session: Session) => {
+  if (!session.emotionsOfChild || session.emotionsOfChild.length === 0) return [];
+  
+  const emotionCounts: {[key: string]: number} = {};
+  
+  session.emotionsOfChild.forEach(emotion => {
+    const normalizedEmotion = emotion.toLowerCase();
+    emotionCounts[normalizedEmotion] = (emotionCounts[normalizedEmotion] || 0) + 1;
+  });
+  
+  return Object.entries(emotionCounts).map(([emotion, count]) => ({
+    emotion,
+    count
+  }));
+};
 
+
+// Helper to prepare puzzle data for chart
+const preparePuzzleData = (session: Session) => {
+  if (!session.playedPuzzles || session.playedPuzzles.length === 0) return [];
+  
+  const puzzleCounts: {[key: string]: number} = {};
+  
+  session.playedPuzzles.forEach(puzzle => {
+    puzzleCounts[puzzle] = (puzzleCounts[puzzle] || 0) + 1;
+  });
+  
+  return Object.entries(puzzleCounts).map(([name, count]) => ({
+    name,
+    count
+  }));
+};
   const handleAssignThemes = (childUsername: string) => {
     sessionStorage.setItem('selectedChild', childUsername);
     sessionStorage.setItem('selectedChildTherapistCode', therapistCode);
@@ -437,7 +470,7 @@ const TherapistDashboard: React.FC = () => {
     const emotionColors: { [key: string]: string } = {
       happy: '#4CAF50',
       sad: '#5C6BC0',
-      angry: '#F44336',
+      angry: '#FF0000',
       scared: '#FF9800',
       neutral: '#9E9E9E',
       surprised: '#8E24AA',
@@ -504,17 +537,31 @@ const TherapistDashboard: React.FC = () => {
       minute: '2-digit'
     }).format(date);
   };
-
+  const preparePuzzleEmotionData = (session: Session, puzzle: string) => {
+    const emotionCounts: {[key: string]: number} = {};
+    
+    session.playedPuzzles?.forEach((p, index) => {
+      if (p === puzzle && session.emotionsOfChild?.[index]) {
+        const emotion = session.emotionsOfChild[index];
+        emotionCounts[emotion] = (emotionCounts[emotion] || 0) + 1;
+      }
+    });
+  
+    return Object.entries(emotionCounts).map(([emotion, count]) => ({
+      emotion,
+      count
+    }));
+  };
   if (loading) return <LoadingContainer>Loading...</LoadingContainer>;
   if (error) return <ErrorContainer>Error: {error}</ErrorContainer>;
-
+  
   return (
     <Container>
       <Header>
         <Title>THERAPIST DASHBOARD</Title>
         <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
       </Header>
-
+  
       <InfoSection>
         <InfoCard>
           <h3>Your Therapist Code</h3>
@@ -522,12 +569,12 @@ const TherapistDashboard: React.FC = () => {
           <small>Share this code with your patients to let them join</small>
         </InfoCard>
       </InfoSection>
-
+  
       <Section>
         <SectionHeader>
           <h2>Your Children</h2>
         </SectionHeader>
-
+  
         <AddChildSection>
           <InputGroup>
             <Input
@@ -540,7 +587,7 @@ const TherapistDashboard: React.FC = () => {
           </InputGroup>
           {error && <ErrorMessage>{error}</ErrorMessage>}
         </AddChildSection>
-
+  
         {children.length === 0 ? (
           <EmptyState>No children added yet</EmptyState>
         ) : (
@@ -578,7 +625,7 @@ const TherapistDashboard: React.FC = () => {
                     Assign Themes
                   </ActionButton>
                 </ChildCard>
-
+  
                 {selectedChild?.username === child.username && (
                   <SessionsContainer>
                     <SessionsContainerHeader>
@@ -669,6 +716,67 @@ const TherapistDashboard: React.FC = () => {
                                     </ThemeJourneyTimeline>
                                   </SessionSection>
                                 )}
+  
+                                {/* Emotion Distribution Pie Chart */}
+                                <SessionSection>
+                                  <SectionTitle>Emotion Summary</SectionTitle>
+                                  <ChartContainer>
+                                    <ResponsiveContainer width="100%" height={300}>
+                                      <PieChart>
+                                        <Pie
+                                          data={prepareEmotionData(session)}
+                                          cx="50%"
+                                          cy="50%"
+                                          labelLine={false}
+                                          outerRadius={80}
+                                          fill="#8884d8"
+                                          dataKey="count"
+                                          nameKey="emotion"
+                                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                                        >
+                                          {prepareEmotionData(session).map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={getEmotionColor(entry.emotion)} />
+                                          ))}
+                                        </Pie>
+                                        <Tooltip 
+                                          formatter={(value: number, name: string) => [
+                                            value, 
+                                            `${name}: ${((value as number / session.emotionsOfChild.length) * 100).toFixed(1)}%`
+                                          ]}
+                                        />
+                                        <Legend />
+                                      </PieChart>
+                                    </ResponsiveContainer>
+                                  </ChartContainer>
+                                </SessionSection>
+  
+                              
+  
+                                {/* Puzzles Played Bar Chart */}
+                                {session.playedPuzzles && session.playedPuzzles.length > 0 && (
+                                  <SessionSection>
+                                    <SectionTitle>Puzzles Played</SectionTitle>
+                                    <ChartContainer>
+                                      <ChartTitle>Puzzle Engagement</ChartTitle>
+                                      <ResponsiveContainer width="100%" height={250}>
+                                        <BarChart
+                                          data={preparePuzzleData(session)}
+                                          margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+                                        >
+                                          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                          <XAxis dataKey="name" />
+                                          <YAxis />
+                                          <Tooltip />
+                                          <Bar 
+                                            dataKey="count" 
+                                            fill="#82ca9d" 
+                                            radius={[4, 4, 0, 0]}
+                                          />
+                                        </BarChart>
+                                      </ResponsiveContainer>
+                                    </ChartContainer>
+                                  </SessionSection>
+                                )}
                               </SessionBody>
                             </SessionCard>
                           );
@@ -684,6 +792,7 @@ const TherapistDashboard: React.FC = () => {
       </Section>
     </Container>
   );
+  
 };
 
 // Styled Components
@@ -1166,5 +1275,39 @@ const ErrorContainer = styled.div`
   border-radius: 8px;
   color: #e74c3c;
 `;
+const ChartContainer = styled.div`
+  margin-top: 20px;
+  height: 250px;
+  background-color: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+`;
 
+const ChartTitle = styled.h6`
+  margin: 0 0 15px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #555;
+  text-align: center;
+`;
+const PuzzlesGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+  margin-top: 15px;
+`;
+
+const PuzzleChartContainer = styled.div`
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+`;
+
+const PuzzleTitle = styled.h5`
+  margin: 0 0 10px 0;
+  text-align: center;
+  color: #333;
+`;
 export default TherapistDashboard;
