@@ -745,7 +745,7 @@ const preparePuzzleData = (session: Session) => {
                                   </SessionSection>
                                 )}
   
-                                {/* Emotion Distribution Pie Chart */}
+                                {/* Emotion Distribution Pie Chart
                                 <SessionSection>
                                   <SectionTitle>Emotion Summary</SectionTitle>
                                   <ChartContainer>
@@ -776,7 +776,72 @@ const preparePuzzleData = (session: Session) => {
                                       </PieChart>
                                     </ResponsiveContainer>
                                   </ChartContainer>
-                                </SessionSection>
+                                </SessionSection> */}
+                                <SessionSection>
+  <SectionTitle>Emotion Summary</SectionTitle>
+  <div style={{ 
+    display: 'flex', 
+    alignItems: 'center', 
+    gap: '16px', // Adjust spacing between legend and chart
+    justifyContent: 'center', // Center the whole group
+  }}>
+    {/* Pie Chart (Right Side) */}
+    <div style={{ width: '60%', maxWidth: '300px' }}>
+      <ResponsiveContainer width="100%" height={300}>
+        <PieChart>
+          <Pie
+            data={prepareEmotionData(session)}
+            cx="50%"
+            cy="50%"
+            labelLine={false}
+            outerRadius={80}
+            fill="#8884d8"
+            dataKey="count"
+            nameKey="emotion"
+            label={false} // Hide labels on slices
+          >
+            {prepareEmotionData(session).map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={getEmotionColor(entry.emotion)} />
+            ))}
+          </Pie>
+          <Tooltip 
+            formatter={(value: number, name: string) => [
+              value, 
+              `${name}: ${((value / session.emotionsOfChild.length) * 100).toFixed(1)}%`
+            ]}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
+
+    {/* Emotion Legend (Left Side, Close to Chart) */}
+    <div style={{ 
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '8px',
+      paddingLeft: '16px', // Space between chart and legend
+    }}>
+      {prepareEmotionData(session).map((entry, index) => (
+        <div key={`legend-${index}`} style={{ 
+          display: 'flex', 
+          alignItems: 'center',
+          fontSize: '14px',
+        }}>
+          <div style={{
+            width: '12px',
+            height: '12px',
+            backgroundColor: getEmotionColor(entry.emotion),
+            marginRight: '8px',
+            borderRadius: '2px',
+          }} />
+          <span>
+            {entry.emotion}: <strong>{((entry.count / session.emotionsOfChild.length) * 100).toFixed(0)}%</strong>
+          </span>
+        </div>
+      ))}
+    </div>
+  </div>
+</SessionSection>
   
                               
   
