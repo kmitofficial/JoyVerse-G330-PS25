@@ -466,11 +466,36 @@ const preparePuzzleData = (session: Session) => {
   };
 
   // Get emotion color for visual indication
+  // const getEmotionColor = (emotion: string | undefined | null): string => {
+  //   const emotionColors: { [key: string]: string } = {
+  //     happy: '#4CAF50',
+  //     sad: '#5C6BC0',
+  //     angry: '#FF0000',
+  //     scared: '#FF9800',
+  //     neutral: '#9E9E9E',
+  //     surprised: '#8E24AA',
+  //     excited: '#FFD600',
+  //     calm: '#03A9F4',
+  //     unknown: '#9E9E9E',
+  //   };
+  //   if (typeof emotion !== 'string') {
+  //     return emotionColors.unknown;
+  //   }
+  //   const normalizedEmotion = emotion.toLowerCase();
+  //   for (const key in emotionColors) {
+  //     if (normalizedEmotion.includes(key)) {
+  //       return emotionColors[key];
+  //     }
+  //   }
+  //   return emotionColors.unknown;
+  // };
   const getEmotionColor = (emotion: string | undefined | null): string => {
+    if (!emotion) return '#9E9E9E'; // Handle undefined/null
+    
     const emotionColors: { [key: string]: string } = {
       happy: '#4CAF50',
       sad: '#5C6BC0',
-      angry: '#FF0000',
+      anger: '#FF0000',
       scared: '#FF9800',
       neutral: '#9E9E9E',
       surprised: '#8E24AA',
@@ -478,18 +503,21 @@ const preparePuzzleData = (session: Session) => {
       calm: '#03A9F4',
       unknown: '#9E9E9E',
     };
-    if (typeof emotion !== 'string') {
-      return emotionColors.unknown;
+  
+    const normalizedEmotion = emotion.trim().toLowerCase();
+    
+    // Exact match first
+    if (emotionColors[normalizedEmotion]) {
+      return emotionColors[normalizedEmotion];
     }
-    const normalizedEmotion = emotion.toLowerCase();
-    for (const key in emotionColors) {
-      if (normalizedEmotion.includes(key)) {
-        return emotionColors[key];
-      }
-    }
-    return emotionColors.unknown;
+  
+    // Then check for partial matches
+    const matchingKey = Object.keys(emotionColors).find(key => 
+      normalizedEmotion.includes(key)
+    );
+  
+    return matchingKey ? emotionColors[matchingKey] : emotionColors.unknown;
   };
-
   // Helper function to process theme transitions for display
   const processThemeTransitions = (session: Session): ThemeTransition[] => {
     if (!session.assignedThemes || session.assignedThemes.length === 0) {
@@ -766,7 +794,7 @@ const preparePuzzleData = (session: Session) => {
                                           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                                           <XAxis dataKey="name" />
                                           <YAxis />
-                                          <Tooltip />
+                                          <Tooltip />F
                                           <Bar 
                                             dataKey="count" 
                                             fill="#82ca9d" 
