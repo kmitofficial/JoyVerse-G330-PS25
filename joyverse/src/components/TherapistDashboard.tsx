@@ -652,6 +652,16 @@ const preparePuzzleData = (session: Session) => {
                   >
                     Assign Themes
                   </ActionButton>
+<ActionButton
+  onClick={() => navigate('/all-sessions-emotions', { 
+    state: { 
+      allSessions: child.sessions || [] 
+    } 
+  })}
+  style={{ marginTop: '10px' }}
+>
+  View All Sessions Emotions
+</ActionButton>
                 </ChildCard>
   
                 {selectedChild?.username === child.username && (

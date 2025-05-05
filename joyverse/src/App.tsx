@@ -13,6 +13,7 @@ import ThemeAssignment from './components/ThemeAssignment';
 import About from './components/About';
 import FAQ from './components/FAQ';
 import Feedback from './components/Feedback';
+import AllSessions, { AllSessionsEmotionView } from './components/AllSessionsEmotionView'
 
 const App: React.FC = () => {
   return (
@@ -35,7 +36,7 @@ const App: React.FC = () => {
           {/* Therapist Protected Routes */}
           <Route path="/dashboard" element={<TherapistDashboard />} />
           <Route path="/theme-assignment" element={<ThemeAssignment />} />
-
+          <Route path="/all-sessions-emotions" element={<AllSessionsEmotionView/>} />
           {/* Catch-all: redirect to Home if no route matches */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
