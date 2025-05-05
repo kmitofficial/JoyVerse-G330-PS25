@@ -594,7 +594,7 @@ const preparePuzzleData = (session: Session) => {
         <InfoCard>
           <h3>Your Therapist Code</h3>
           <CodeDisplay>{therapistCode}</CodeDisplay>
-          <small>Share this code with your patients to let them join</small>
+          <small>Share this code with your children to let them join</small>
         </InfoCard>
       </InfoSection>
   
