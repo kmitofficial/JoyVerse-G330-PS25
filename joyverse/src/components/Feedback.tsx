@@ -9,7 +9,7 @@ const Feedback = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch('/api/feedback', {
+      const response = await fetch('/api/submit-feedback', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

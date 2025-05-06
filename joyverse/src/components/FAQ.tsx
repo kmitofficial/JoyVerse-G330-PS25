@@ -2,12 +2,36 @@ import React, { useState } from 'react';
 import { CSSProperties } from 'react';
 
 const FAQ = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    question: ''
-  });
-
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [question,setQuestion] = useState('');
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+  
+      try {
+        const response = await fetch('http://localhost:5000/api/add-faq', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ name, email, question }),
+        });
+  
+        if (response.ok) {
+          alert('FAQ submitted successfully!');
+          setName('');
+          setEmail('');
+          setQuestion('');
+        } else {
+          alert('Failed to submit FAQ.');
+        }
+      } catch (error) {
+        console.error('Error submitting FAQ:', error);
+        alert('An error occurred while submitting FAQ.');
+      }
+    };
+  
   const styles: Record<string, CSSProperties> = {
     container: {
       backgroundImage: `url('/images/bg-4.jpg')`,
@@ -169,16 +193,13 @@ const FAQ = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Form submitted:', formData);
-    setFormData({ name: '', email: '', question: '' });
+    if (name === 'name') {
+      setName(value);
+    } else if (name === 'email') {
+      setEmail(value);
+    } else if (name === 'question') {
+      setQuestion(value);
+    }
   };
 
   return (
@@ -242,7 +263,7 @@ const FAQ = () => {
                 id="name"
                 name="name"
                 style={styles.input}
-                value={formData.name}
+                value={name}
                 onChange={handleInputChange}
                 required
                 placeholder="Enter your name"
@@ -256,7 +277,7 @@ const FAQ = () => {
                 id="email"
                 name="email"
                 style={styles.input}
-                value={formData.email}
+                value={email}
                 onChange={handleInputChange}
                 required
                 placeholder="Enter your email"
@@ -269,7 +290,7 @@ const FAQ = () => {
                 id="question"
                 name="question"
                 style={styles.textarea}
-                value={formData.question}
+                value={question}
                 onChange={handleInputChange}
                 required
                 placeholder="Type your question here..."
