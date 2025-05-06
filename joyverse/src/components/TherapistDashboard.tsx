@@ -1,310 +1,9 @@
-// import React, { useEffect, useState } from 'react';
-// import { useNavigate } from 'react-router-dom';
-// import styled from 'styled-components';
-
-// interface Child {
-//   username: string;
-//   joinedAt: string;
-//   assignedThemes: string[];
-// }
-
-// const TherapistDashboard: React.FC = () => {
-//   const [therapistUsername, setTherapistUsername] = useState('');
-//   const [therapistCode, setTherapistCode] = useState('');
-//   const [children, setChildren] = useState<Child[]>([]);
-//   const [newChildUsername, setNewChildUsername] = useState('');
-//   const [error, setError] = useState<string | null>(null);
-//   const [loading, setLoading] = useState(true);
-//   const navigate = useNavigate();
-
-//   useEffect(() => {
-//     const username = sessionStorage.getItem('therapistUsername');
-//     const code = sessionStorage.getItem('therapistCode');
-
-//     if (!username || !code) {
-//       navigate('/');
-//       return;
-//     }
-
-//     setTherapistUsername(username);
-//     setTherapistCode(code);
-//     fetchTherapistData(username);
-//   }, [navigate]);
-
-//   const fetchTherapistData = async (username: string) => {
-//     try {
-//       const response = await fetch('http://localhost:5000/api/get-therapist', {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify({ username }),
-//       });
-
-//       const data = await response.json();
-//       if (response.ok) {
-//         setChildren(data.children || []);
-//         setError(null);
-//       } else {
-//         setError(data.message || 'Failed to fetch therapist data');
-//       }
-//     } catch (err) {
-//       setError('Server error');
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const handleAddChild = async () => {
-//     if (!newChildUsername.trim()) {
-//       setError('Enter a child username');
-//       return;
-//     }
-
-//     try {
-//       const response = await fetch('http://localhost:5000/api/add-child', {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify({
-//           therapistCode: therapistCode,
-//           childName: newChildUsername
-//         }),
-//       });
-
-//       const data = await response.json();
-
-//       if (response.ok) {
-//         await fetchTherapistData(therapistUsername);
-//         setNewChildUsername('');
-//         setError(null);
-//       } else {
-//         setError(data.message || 'Failed to add child');
-//       }
-//     } catch (err) {
-//       setError('Network error');
-//       console.error('Error adding child:', err);
-//     }
-//   };
-
-//   const handleAssignThemes = (childUsername: string) => {
-//     sessionStorage.setItem('selectedChild', childUsername);
-//     sessionStorage.setItem('selectedChildTherapistCode', therapistCode);
-//     navigate('/theme-assignment');
-//   };
-
-//   const handleLogout = () => {
-//     sessionStorage.clear();
-//     navigate('/');
-//   };
-
-//   if (loading) return <FullScreenBackground><ContentContainer>Loading...</ContentContainer></FullScreenBackground>;
-//   if (error) return <FullScreenBackground><ContentContainer>Error: {error}</ContentContainer></FullScreenBackground>;
-
-//   return (
-//     <FullScreenBackground>
-//       <ContentContainer>
-//         <Header>
-//           <EnhancedTitle>THERAPIST DASHBOARD</EnhancedTitle>
-//           <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
-//         </Header>
-
-//         <InfoSection>
-//           <InfoCard>
-//             <h3>Your Therapist Code</h3>
-//             <CodeDisplay>{therapistCode}</CodeDisplay>
-//             <small>Share this code with your patients to let them join</small>
-//           </InfoCard>
-//         </InfoSection>
-
-//         <Section>
-//           <SectionHeader>
-//             <EnhancedSectionTitle>Your Children</EnhancedSectionTitle>
-//           </SectionHeader>
-
-//           <AddChildSection>
-//             <InputGroup>
-//               <Input
-//                 type="text"
-//                 value={newChildUsername}
-//                 onChange={(e) => setNewChildUsername(e.target.value)}
-//                 placeholder="Enter child username"
-//               />
-//               <Button onClick={handleAddChild}>Add Child</Button>
-//             </InputGroup>
-//             {error && <ErrorMessage>{error}</ErrorMessage>}
-//           </AddChildSection>
-
-//           {children.length === 0 ? (
-//             <EmptyState>No children added yet</EmptyState>
-//           ) : (
-//             <ChildrenGrid>
-//               {children.map((child) => (
-//                 <ChildCard key={child.username}>
-//                   <h3>{child.username}</h3>
-//                   <p>Joined: {new Date(child.joinedAt).toLocaleDateString()}</p>
-//                   <p>Assigned Themes: {child.assignedThemes?.length || 0}</p>
-//                   <ActionButton onClick={() => handleAssignThemes(child.username)}>
-//                     Assign Themes
-//                   </ActionButton>
-//                 </ChildCard>
-//               ))}
-//             </ChildrenGrid>
-//           )}
-//         </Section>
-//       </ContentContainer>
-//     </FullScreenBackground>
-//   );
-// };
-
-// // Full screen background
-// const FullScreenBackground = styled.div`
-//   min-height: 100vh;
-//   width: 100%;
-//   background: url('/images/bg-6.jpg') no-repeat center center fixed;
-//   background-size: cover;
-//   margin: 0;
-//   padding: 0;
-//   display: flex;
-//   justify-content: center;
-// `;
-
-// // Content container
-// const ContentContainer = styled.div`
-//   padding: 20px;
-//   width: 100%;
-//   max-width: 1200px;
-// `;
-
-// const Header = styled.div`display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;`;
-
-// // Enhanced title with text shadow and bold styling
-// const EnhancedTitle = styled.h1`
-//   color: #333;
-//   margin: 0;
-//   font-weight: 800;
-//   font-size: 32px;
-//   text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
-//   background-color: rgba(255, 255, 255, 0.7);
-//   padding: 8px 16px;
-//   border-radius: 8px;
-//   letter-spacing: 1px;
-// `;
-
-// // Enhanced section title
-// const EnhancedSectionTitle = styled.h2`
-//   color: #333;
-//   font-weight: 700;
-//   text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.8);
-//   background-color: rgba(255, 255, 255, 0.7);
-//   padding: 6px 12px;
-//   border-radius: 6px;
-//   display: inline-block;
-// `;
-
-// const LogoutButton = styled.button`
-//   padding: 8px 16px; 
-//   background-color: #ff4444; 
-//   color: white;
-//   border: none; 
-//   border-radius: 4px; 
-//   cursor: pointer;
-//   font-weight: 600;
-//   &:hover { background-color: #cc0000; }
-// `;
-
-// const InfoSection = styled.div`margin-bottom: 30px;`;
-// const InfoCard = styled.div`
-//   background-color: #f8f9fa; 
-//   padding: 20px; 
-//   border-radius: 8px;
-//   text-align: center;
-//   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-// `;
-
-// const CodeDisplay = styled.div`
-//   font-size: 24px; 
-//   font-weight: bold; 
-//   color: #5a7af0; 
-//   margin: 10px 0;
-// `;
-
-// const Section = styled.div`margin-bottom: 30px;`;
-// const SectionHeader = styled.div`
-//   display: flex; 
-//   justify-content: space-between; 
-//   align-items: center;
-//   margin-bottom: 20px;
-// `;
-
-// const AddChildSection = styled.div`margin-bottom: 20px;`;
-// const InputGroup = styled.div`display: flex; gap: 10px; margin-bottom: 10px;`;
-// const Input = styled.input`
-//   padding: 10px; 
-//   border: 1px solid #ddd; 
-//   border-radius: 4px; 
-//   flex: 1;
-// `;
-
-// const Button = styled.button`
-//   padding: 10px 20px; 
-//   background-color: #5a7af0;
-//   color: white; 
-//   border: none; 
-//   border-radius: 4px; 
-//   cursor: pointer;
-//   font-weight: 600;
-//   &:hover { background-color: #4a6ad0; }
-// `;
-
-// const ErrorMessage = styled.div`
-//   color: #e74c3c; 
-//   background: #fdeaea; 
-//   padding: 0.8rem;
-//   border-radius: 8px; 
-//   text-align: center;
-// `;
-
-// const EmptyState = styled.div`
-//   text-align: center; 
-//   padding: 40px; 
-//   background-color: #f8f9fa;
-//   border-radius: 8px; 
-//   color: #666;
-// `;
-
-// const ChildrenGrid = styled.div`
-//   display: grid; 
-//   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-//   gap: 20px;
-// `;
-
-// const ChildCard = styled.div`
-//   background-color: white; 
-//   padding: 20px; 
-//   border-radius: 8px;
-//   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-//   h3 { margin: 0 0 10px 0; color: #333; }
-//   p { margin: 5px 0; color: #666; }
-// `;
-
-// const ActionButton = styled.button`
-//   padding: 8px 16px; 
-//   background-color: #6e8efb; 
-//   color: white;
-//   border: none; 
-//   border-radius: 4px; 
-//   cursor: pointer; 
-//   margin-top: 10px; 
-//   width: 100%;
-//   font-weight: 600;
-//   &:hover { background-color: #5a7af0; }
-// `;
-
-// export default TherapistDashboard;
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { PieChart, BarChart, Bar, Pie, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Cell } from 'recharts';
+
 // Types/interfaces
 interface Session {
   sessionId: string;
@@ -341,6 +40,8 @@ const TherapistDashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedChild, setSelectedChild] = useState<Child | null>(null);
+  const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null); // Track the expanded session
+  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
 
   // Apply background on mount
@@ -580,6 +281,12 @@ const preparePuzzleData = (session: Session) => {
       count
     }));
   };
+  const toggleSession = (sessionId: string) => {
+    setExpandedSessionId((prev) => (prev === sessionId ? null : sessionId)); // Toggle the session
+  };
+  const filteredChildren = children.filter((child) =>
+    child.username.toLowerCase().includes(searchQuery.toLowerCase())
+  );
   if (loading) return <LoadingContainer>Loading...</LoadingContainer>;
   if (error) return <ErrorContainer>Error: {error}</ErrorContainer>;
   
@@ -601,6 +308,12 @@ const preparePuzzleData = (session: Session) => {
       <Section>
         <SectionHeader>
           <h2>Your Children</h2>
+          <SearchInput
+            type="text"
+            placeholder="Search for a child..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </SectionHeader>
   
         <AddChildSection>
@@ -616,11 +329,11 @@ const preparePuzzleData = (session: Session) => {
           {error && <ErrorMessage>{error}</ErrorMessage>}
         </AddChildSection>
   
-        {children.length === 0 ? (
-          <EmptyState>No children added yet</EmptyState>
+        {filteredChildren.length === 0 ? (
+          <EmptyState>No children found</EmptyState>
         ) : (
           <ChildrenGrid>
-            {children.map((child) => (
+            {filteredChildren.map((child) => (
               <React.Fragment key={child.username}>
                 <ChildCard 
                   onClick={() => handleChildClick(child)} 
@@ -652,16 +365,18 @@ const preparePuzzleData = (session: Session) => {
                   >
                     Assign Themes
                   </ActionButton>
-<ActionButton
-  onClick={() => navigate('/all-sessions-emotions', { 
-    state: { 
-      allSessions: child.sessions || [] 
-    } 
-  })}
-  style={{ marginTop: '10px' }}
->
-  View All Sessions Emotions
-</ActionButton>
+                  <ActionButton
+                    onClick={() =>
+                      navigate('/all-sessions-emotions', {
+                        state: {
+                          allSessions: child.sessions || [],
+                        },
+                      })
+                    }
+                    style={{ marginTop: '10px' }}
+                  >
+                    View All Sessions Emotions
+                  </ActionButton>
                 </ChildCard>
   
                 {selectedChild?.username === child.username && (
@@ -679,6 +394,7 @@ const preparePuzzleData = (session: Session) => {
                     ) : (
                       <SessionsList>
                         {child.sessions.map((session: Session) => {
+                          const isExpanded = expandedSessionId === session.sessionId;
                           const themeTransitions = processThemeTransitions(session);
                           return (
                             <SessionCard key={session.sessionId}>
@@ -697,97 +413,101 @@ const preparePuzzleData = (session: Session) => {
                                     {themeTransitions.length} Transitions
                                   </StatBadge>
                                 </SessionStats>
+                                <ToggleArrow onClick={() => toggleSession(session.sessionId)}>
+                                  {isExpanded ? '▲' : '▼'}
+                                </ToggleArrow>
                               </SessionHeader>
                               
-                              <SessionBody>
-                                <SessionSection>
-                                  <SectionTitle>Themes</SectionTitle>
-                                  <ThemeWrapper>
-                                    {session.assignedThemes?.map((theme, idx) => (
-                                      <ThemeTag key={idx}>{theme}</ThemeTag>
-                                    )) || <p>None</p>}
-                                  </ThemeWrapper>
-                                </SessionSection>
-                                
-                                {themeTransitions.length > 0 && (
+                              {isExpanded && (
+                                <SessionBody>
                                   <SessionSection>
-                                    <SectionTitle>Theme Journey</SectionTitle>
-                                    <ThemeJourneyTimeline>
-                                      {themeTransitions.map((transition, index) => {
-                                        const emotionColor = getEmotionColor(transition.emotion);
-                                        
-                                        if (transition.type === 'start') {
-                                          return (
-                                            <TimelineItem key={`start-${index}`} isFirst={true}>
-                                              <TimelineConnector isFirst={true} />
-                                              <TimelineBubble color={emotionColor}>
-                                                <EmotionIndicator color={emotionColor} />
-                                              </TimelineBubble>
-                                              <TimelineContent>
-                                                <TimelineTitle>Started with: {transition.theme}</TimelineTitle>
-                                                <TimelineDetail>Emotion: {transition.emotion}</TimelineDetail>
-                                              </TimelineContent>
-                                            </TimelineItem>
-                                          );
-                                        } else {
-                                          return (
-                                            <TimelineItem key={`transition-${index}`}>
-                                              <TimelineConnector />
-                                              <TimelineBubble color={emotionColor}>
-                                                <EmotionIndicator color={emotionColor} />
-                                              </TimelineBubble>
-                                              <TimelineContent>
-                                                <TimelineTitle>
-                                                  {transition.from}{' '}
-                                                  {transition.isSameTheme ? 
-                                                    <StayedIndicator>(stayed)</StayedIndicator> : 
-                                                    <TransitionArrow>→</TransitionArrow>
-                                                  }{' '}
-                                                  {!transition.isSameTheme && transition.to}
-                                                </TimelineTitle>
-                                                <TimelineDetail>Emotion: {transition.emotion}</TimelineDetail>
-                                              </TimelineContent>
-                                            </TimelineItem>
-                                          );
-                                        }
-                                      })}
-                                    </ThemeJourneyTimeline>
+                                    <SectionTitle>Themes</SectionTitle>
+                                    <ThemeWrapper>
+                                      {session.assignedThemes?.map((theme, idx) => (
+                                        <ThemeTag key={idx}>{theme}</ThemeTag>
+                                      )) || <p>None</p>}
+                                    </ThemeWrapper>
                                   </SessionSection>
-                                )}
   
-                                {/* Emotion Distribution Pie Chart
-                                <SessionSection>
-                                  <SectionTitle>Emotion Summary</SectionTitle>
-                                  <ChartContainer>
-                                    <ResponsiveContainer width="100%" height={300}>
-                                      <PieChart>
-                                        <Pie
-                                          data={prepareEmotionData(session)}
-                                          cx="50%"
-                                          cy="50%"
-                                          labelLine={false}
-                                          outerRadius={80}
-                                          fill="#8884d8"
-                                          dataKey="count"
-                                          nameKey="emotion"
-                                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                                        >
-                                          {prepareEmotionData(session).map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={getEmotionColor(entry.emotion)} />
-                                          ))}
-                                        </Pie>
-                                        <Tooltip 
-                                          formatter={(value: number, name: string) => [
-                                            value, 
-                                            `${name}: ${((value as number / session.emotionsOfChild.length) * 100).toFixed(1)}%`
-                                          ]}
-                                        />
-                                        <Legend />
-                                      </PieChart>
-                                    </ResponsiveContainer>
-                                  </ChartContainer>
-                                </SessionSection> */}
-                                <SessionSection>
+                                  {themeTransitions.length > 0 && (
+                                    <SessionSection>
+                                      <SectionTitle>Theme Journey</SectionTitle>
+                                      <ThemeJourneyTimeline>
+                                        {themeTransitions.map((transition, index) => {
+                                          const emotionColor = getEmotionColor(transition.emotion);
+                                          
+                                          if (transition.type === 'start') {
+                                            return (
+                                              <TimelineItem key={`start-${index}`} isFirst={true}>
+                                                <TimelineConnector isFirst={true} />
+                                                <TimelineBubble color={emotionColor}>
+                                                  <EmotionIndicator color={emotionColor} />
+                                                </TimelineBubble>
+                                                <TimelineContent>
+                                                  <TimelineTitle>Started with: {transition.theme}</TimelineTitle>
+                                                  <TimelineDetail>Emotion: {transition.emotion}</TimelineDetail>
+                                                </TimelineContent>
+                                              </TimelineItem>
+                                            );
+                                          } else {
+                                            return (
+                                              <TimelineItem key={`transition-${index}`}>
+                                                <TimelineConnector />
+                                                <TimelineBubble color={emotionColor}>
+                                                  <EmotionIndicator color={emotionColor} />
+                                                </TimelineBubble>
+                                                <TimelineContent>
+                                                  <TimelineTitle>
+                                                    {transition.from}{' '}
+                                                    {transition.isSameTheme ? 
+                                                      <StayedIndicator>(stayed)</StayedIndicator> : 
+                                                      <TransitionArrow>→</TransitionArrow>
+                                                    }{' '}
+                                                    {!transition.isSameTheme && transition.to}
+                                                  </TimelineTitle>
+                                                  <TimelineDetail>Emotion: {transition.emotion}</TimelineDetail>
+                                                </TimelineContent>
+                                              </TimelineItem>
+                                            );
+                                          }
+                                        })}
+                                      </ThemeJourneyTimeline>
+                                    </SessionSection>
+                                  )}
+  
+                                  {/* Emotion Distribution Pie Chart
+                                  <SessionSection>
+                                    <SectionTitle>Emotion Summary</SectionTitle>
+                                    <ChartContainer>
+                                      <ResponsiveContainer width="100%" height={300}>
+                                        <PieChart>
+                                          <Pie
+                                            data={prepareEmotionData(session)}
+                                            cx="50%"
+                                            cy="50%"
+                                            labelLine={false}
+                                            outerRadius={80}
+                                            fill="#8884d8"
+                                            dataKey="count"
+                                            nameKey="emotion"
+                                            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                                          >
+                                            {prepareEmotionData(session).map((entry, index) => (
+                                              <Cell key={`cell-${index}`} fill={getEmotionColor(entry.emotion)} />
+                                            ))}
+                                          </Pie>
+                                          <Tooltip 
+                                            formatter={(value: number, name: string) => [
+                                              value, 
+                                              `${name}: ${((value as number / session.emotionsOfChild.length) * 100).toFixed(1)}%`
+                                            ]}
+                                          />
+                                          <Legend />
+                                        </PieChart>
+                                      </ResponsiveContainer>
+                                    </ChartContainer>
+                                  </SessionSection> */}
+                                  <SessionSection>
   <SectionTitle>Emotion Summary</SectionTitle>
   <div style={{ 
     display: 'flex', 
@@ -855,14 +575,15 @@ const preparePuzzleData = (session: Session) => {
   
                               
   
-                                {/* Puzzles Played Bar Chart */}
-                                {session.playedPuzzles && session.playedPuzzles.length > 0 && (
-                                  <SessionSection>
-                                    <SectionTitle>Puzzles Played</SectionTitle>
-                                    <div>{session.playedPuzzles.length || 0}</div>
-                                  </SessionSection>
-                                )}
-                              </SessionBody>
+                                  {/* Puzzles Played Bar Chart */}
+                                  {session.playedPuzzles && session.playedPuzzles.length > 0 && (
+                                    <SessionSection>
+                                      <SectionTitle>Puzzles Played</SectionTitle>
+                                      <div>{session.playedPuzzles.length || 0}</div>
+                                    </SessionSection>
+                                  )}
+                                </SessionBody>
+                              )}
                             </SessionCard>
                           );
                         })}
@@ -1394,5 +1115,36 @@ const PuzzleTitle = styled.h5`
   margin: 0 0 10px 0;
   text-align: center;
   color: #333;
+`;
+const ToggleArrow = styled.div`
+  cursor: pointer;
+  font-size: 18px;
+  color: #5a7af0;
+  margin-left: 10px;
+  &:hover {
+    color: #4a67cc;
+  }
+`;
+const SearchBarContainer = styled.div`
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+`;
+
+const SearchInput = styled.input`
+  padding: 10px 15px;
+  width: 100%;
+  max-width: 400px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: #5a7af0;
+    box-shadow: 0 0 0 2px rgba(90, 122, 240, 0.2);
+  }
 `;
 export default TherapistDashboard;
