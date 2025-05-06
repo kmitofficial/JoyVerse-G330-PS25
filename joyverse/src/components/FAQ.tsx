@@ -10,7 +10,7 @@ const FAQ = () => {
       e.preventDefault();
   
       try {
-        const response = await fetch('/api/add-faq', {
+        const response = await fetch('http://localhost:5000/api/add-faq', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -19,16 +19,16 @@ const FAQ = () => {
         });
   
         if (response.ok) {
-          alert('Feedback submitted successfully!');
+          alert('FAQ submitted successfully!');
           setName('');
           setEmail('');
           setQuestion('');
         } else {
-          alert('Failed to submit feedback.');
+          alert('Failed to submit FAQ.');
         }
       } catch (error) {
-        console.error('Error submitting feedback:', error);
-        alert('An error occurred while submitting feedback.');
+        console.error('Error submitting FAQ:', error);
+        alert('An error occurred while submitting FAQ.');
       }
     };
   

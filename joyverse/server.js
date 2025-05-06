@@ -96,8 +96,9 @@ const Feedback = mongoose.model('Feedback', feedbackSchema);
 
 // FAQ Schema
 const faqSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true },
   question: { type: String, required: true },
-  answer: { type: String, required: true },
   createdAt: { type: Date, default: Date.now }
 });
 const FAQ = mongoose.model('FAQ', faqSchema);
@@ -625,19 +626,15 @@ app.get('/api/get-feedback', async (req, res) => {
 // Add FAQ
 app.post('/api/add-faq', async (req, res) => {
   try {
-    const { adminKey, question, answer } = req.body;
-    
-    if (adminKey !== 'admin-secret-key') {
-      return res.status(403).json({ message: 'Unauthorized' });
-    }
-    
-    if (!question || !answer) {
+    const { name,email,question } = req.body;
+    if (!question || !name || !email) {
       return res.status(400).json({ error: "Question and answer are required" });
     }
     
     const faq = new FAQ({
-      question,
-      answer
+      name,
+      email,
+      question
     });
     
     await faq.save();
