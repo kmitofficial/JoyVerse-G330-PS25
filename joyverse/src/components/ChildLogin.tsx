@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 
-const ChildLogin: React.FC = () => {
-  const [code, setCode] = useState('');
-  const [childName, setChildName] = useState('');
+const Login: React.FC = () => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -12,18 +12,18 @@ const ChildLogin: React.FC = () => {
     e.preventDefault();
     setError('');
 
-    if (!code || !childName) {
-      setError('Both therapist code and child name are required');
+    if (!username || !password) {
+      setError('Both username and password are required');
       return;
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/child-login', {
+      const response = await fetch('http://localhost:5000/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ code, childName }),
+        body: JSON.stringify({ username, password }),
       });
 
       const contentType = response.headers.get('content-type');
@@ -31,15 +31,23 @@ const ChildLogin: React.FC = () => {
         const data = await response.json();
 
         if (response.ok) {
-          sessionStorage.setItem('childData', JSON.stringify({
-            username: childName,
-            therapistCode: code, // save the therapist code for API calls
-            assignedThemes: data.assignedThemes || [],
-            sessionId: data.sessionId // <-- this is critical!
-          }));
-          navigate('/landing');
+          if (data.role === 'therapist') {
+            // Therapist login
+            sessionStorage.setItem('therapistUsername', data.username);
+            sessionStorage.setItem('therapistCode', data.code);
+            navigate('/dashboard');
+          } else if (data.role === 'child') {
+            // Child login
+            sessionStorage.setItem('childData', JSON.stringify({
+              username: data.username,
+              therapistCode: data.therapistCode,
+              assignedThemes: data.assignedThemes || [],
+              sessionId: data.sessionId,
+            }));
+            navigate('/landing');
+          }
         } else {
-          setError(data.message || 'Login failed');
+          setError(data.message || 'Invalid username or password');
         }
       } else {
         setError('Server error. Please try again later.');
@@ -56,32 +64,32 @@ const ChildLogin: React.FC = () => {
       <FormWrapper>
         <FormCard>
           <Title>
-            Welcome, Young Explorer! <SparkleIcon>✨</SparkleIcon>
+            Welcome to Joyverse! <SparkleIcon>✨</SparkleIcon>
           </Title>
           <Form onSubmit={handleSubmit}>
             <InputGroup>
-              <Label>Magic Code</Label>
+              <Label>Username</Label>
               <StyledInput
                 type="text"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                placeholder="Enter your therapist's magic code"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter your username"
                 required
               />
             </InputGroup>
             <InputGroup>
-              <Label>Your Name</Label>
+              <Label>Password</Label>
               <StyledInput
-                type="text"
-                value={childName}
-                onChange={(e) => setChildName(e.target.value)}
-                placeholder="What should we call you?"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
                 required
               />
             </InputGroup>
             {error && <ErrorMessage>{error}</ErrorMessage>}
             <ActionButton type="submit">
-              Begin Adventure <RocketIcon>🚀</RocketIcon>
+              Login <RocketIcon>🚀</RocketIcon>
             </ActionButton>
           </Form>
         </FormCard>
@@ -267,4 +275,4 @@ const ErrorMessage = styled.div`
   animation: ${fadeIn} 0.3s ease-out;
 `;
 
-export default ChildLogin;
+export default Login;

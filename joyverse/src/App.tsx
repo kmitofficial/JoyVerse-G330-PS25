@@ -14,6 +14,9 @@ import About from './components/About';
 import FAQ from './components/FAQ';
 import Feedback from './components/Feedback';
 import AllSessions, { AllSessionsEmotionView } from './components/AllSessionsEmotionView'
+import SuperAdminLogin from './components/SuperAdminLogin';
+import SuperAdminDashboard from './components/SuperAdminDashboard';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const App: React.FC = () => {
   return (
@@ -37,6 +40,18 @@ const App: React.FC = () => {
           <Route path="/dashboard" element={<TherapistDashboard />} />
           <Route path="/theme-assignment" element={<ThemeAssignment />} />
           <Route path="/all-sessions-emotions" element={<AllSessionsEmotionView/>} />
+
+          {/* SuperAdmin Routes */}
+          <Route path="/superadmin/login" element={<SuperAdminLogin />} />
+          <Route
+            path="/superadmin/dashboard"
+            element={
+              <ProtectedRoute>
+                <SuperAdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+
           {/* Catch-all: redirect to Home if no route matches */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

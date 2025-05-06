@@ -42,6 +42,9 @@ const TherapistDashboard: React.FC = () => {
   const [selectedChild, setSelectedChild] = useState<Child | null>(null);
   const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null); // Track the expanded session
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [passwordChangeMessage, setPasswordChangeMessage] = useState('');
   const navigate = useNavigate();
 
   // Apply background on mount
@@ -287,6 +290,35 @@ const preparePuzzleData = (session: Session) => {
   const filteredChildren = children.filter((child) =>
     child.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword) {
+      setPasswordChangeMessage('Please fill in all fields');
+      return;
+    }
+  
+    try {
+      const response = await fetch('http://localhost:5000/api/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: therapistUsername,
+          currentPassword,
+          newPassword,
+        }),
+      });
+  
+      const data = await response.json();
+      if (response.ok) {
+        setPasswordChangeMessage('Password changed successfully');
+        setCurrentPassword('');
+        setNewPassword('');
+      } else {
+        setPasswordChangeMessage(data.message || 'Failed to change password');
+      }
+    } catch (err) {
+      setPasswordChangeMessage('Server error');
+    }
+  };
   if (loading) return <LoadingContainer>Loading...</LoadingContainer>;
   if (error) return <ErrorContainer>Error: {error}</ErrorContainer>;
   
@@ -596,6 +628,27 @@ const preparePuzzleData = (session: Session) => {
           </ChildrenGrid>
         )}
       </Section>
+      <Section>
+  <SectionHeader>
+    <h2>Change Password</h2>
+  </SectionHeader>
+  <InputGroup>
+    <Input
+      type="password"
+      value={currentPassword}
+      onChange={(e) => setCurrentPassword(e.target.value)}
+      placeholder="Current Password"
+    />
+    <Input
+      type="password"
+      value={newPassword}
+      onChange={(e) => setNewPassword(e.target.value)}
+      placeholder="New Password"
+    />
+    <Button onClick={handleChangePassword}>Change Password</Button>
+  </InputGroup>
+  {passwordChangeMessage && <ErrorMessage>{passwordChangeMessage}</ErrorMessage>}
+</Section>
     </Container>
   );
   

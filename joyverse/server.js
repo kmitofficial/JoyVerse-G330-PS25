@@ -4,7 +4,8 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import { customAlphabet } from 'nanoid';
 import axios from 'axios';
-
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 const generateNumericCode = customAlphabet('0123456789', 6);
 const app = express();
 const port = 5000;
@@ -42,10 +43,10 @@ const Invitation = mongoose.model('Invitation', invitationSchema);
 
 // Therapist Schema
 const therapistSchema = new mongoose.Schema({
-  username: String,
-  password: String,
+
+  username: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
   code: { type: String, unique: true },
-  invitationCodeUsed: { type: String, default: null }, // Track which invitation code was used
   children: [
     {
       username: String,
@@ -63,16 +64,16 @@ const therapistSchema = new mongoose.Schema({
               level: Number,
               puzzleId: String,
               completedAt: { type: Date, default: Date.now },
-              emotionsDuring: [String]
-            }
-          ]
-        }
+              emotionsDuring: [String],
+            },
+          ],
+        },
       ],
-      currentAssignedThemes: { type: [String], default: [] }, // Track current active themes
-      assignedThemes: { type: [String], default: [] }, // For backward compatibility
-      playedPuzzles: { type: [String], default: [] } // For backward compatibility
-    }
-  ]
+      currentAssignedThemes: { type: [String], default: [] },
+      assignedThemes: { type: [String], default: [] },
+      playedPuzzles: { type: [String], default: [] },
+    },
+  ],
 });
 const Therapist = mongoose.model('Therapist', therapistSchema);
 
@@ -247,11 +248,64 @@ app.post('/api/signup', async (req, res) => {
 app.post('/api/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-    const user = await Therapist.findOne({ username, password });
-    if (!user) return res.status(401).json({ message: 'Invalid credentials' });
+    console.log('Login attempt:', { username, password });
 
-    res.status(200).json({ message: 'Login successful', username: user.username, code: user.code });
+    // Check if the user is a therapist
+    const therapist = await Therapist.findOne({ username });
+    if (therapist) {
+      console.log('Therapist found:', therapist.username);
+      const isPasswordValid = await bcrypt.compare(password, therapist.password);
+      if (isPasswordValid) {
+        console.log('Therapist login successful');
+        return res.status(200).json({
+          role: 'therapist',
+          username: therapist.username,
+          code: therapist.code,
+        });
+      } else {
+        console.log('Invalid therapist password');
+      }
+    }
+
+    // Check if the user is a child
+    const therapistWithChild = await Therapist.findOne({
+      "children.username": username,
+    });
+
+    if (therapistWithChild) {
+      console.log('Therapist with child found:', therapistWithChild.username);
+      const child = therapistWithChild.children.find(
+        (child) => child.username === username
+      );
+
+      if (child) {
+        console.log('Child found:', child.username);
+        const sessionId = generateSessionId();
+        child.sessions.push({
+          sessionId,
+          assignedThemes: child.currentAssignedThemes || [],
+          themesChanged: [],
+          emotionsOfChild: [],
+          playedPuzzles: [],
+        });
+
+        await therapistWithChild.save();
+
+        console.log('Child login successful');
+        return res.status(200).json({
+          role: 'child',
+          username: child.username,
+          therapistCode: therapistWithChild.code,
+          assignedThemes: child.currentAssignedThemes || [],
+          sessionId,
+        });
+      }
+    }
+
+    console.log('Invalid username or password');
+    res.status(401).json({ message: 'Invalid username or password' });
   } catch (error) {
+    console.error('Login error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
@@ -723,46 +777,85 @@ app.post('/api/change-password', async (req, res) => {
   }
 });
 
+app.post('/api/superadmin/login', (req, res) => {
+  const { username, password } = req.body;
 
+  // Replace with your actual Super Admin credentials
+  const SUPER_ADMIN_USERNAME = 'admin';
+  const SUPER_ADMIN_PASSWORD = 'admin123';
 
+  if (username === SUPER_ADMIN_USERNAME && password === SUPER_ADMIN_PASSWORD) {
+    const token = jwt.sign({ role: 'superadmin' }, 'your_secret_key', { expiresIn: '1h' });
+    res.json({ token });
+  } else {
+    res.status(401).json({ message: 'Invalid credentials' });
+  }
+});
 
-/*
-let lastPredictedEmotion = null;
+app.post('/api/superadmin/register-therapist', authenticateSuperAdmin, async (req, res) => {
+  const { username, password } = req.body;
 
-let emotionHistory = [];
-let currentEmotion = null; // used to change the theme
-
-// Receives FaceMesh landmarks and gets emotion from Python model
-app.post('/api/facemesh-landmarks', async (req, res) => {
-  const { landmarks } = req.body;
-  console.log('Received landmarks:', landmarks.length);
+  if (!username || !password) {
+    return res.status(400).json({ message: 'Username and password are required' });
+  }
 
   try {
-    const response = await axios.post('http://127.0.0.1:5000/predict', { landmarks });
+    // Generate a unique code for the therapist
+    const code = await generateUniqueCode();
 
-    const emotion = response.data.emotion;
-    console.log('Predicted emotion from model:', emotion);
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Update both current emotion and full history
-    currentEmotion = emotion;
-    emotionHistory.push(emotion);
+    // Create a new therapist
+    const therapist = new Therapist({ username, password: hashedPassword, code });
+    await therapist.save();
 
-    res.status(200).json({ emotion });
+    res.status(201).json({ message: 'Therapist registered successfully', code });
   } catch (error) {
-    console.error('Error forwarding to Python model:', error.message);
-    res.status(500).json({ error: 'Failed to predict emotion' });
+    console.error('Error registering therapist:', error);
+    res.status(500).json({ message: 'Failed to register therapist' });
   }
 });
 
-// Used by the frontend to get the current emotion to decide the next theme
-app.get('/api/emotion', (req, res) => {
-  if (currentEmotion) {
-    res.json({ emotion: currentEmotion });
-  } else {
-    res.status(404).json({ error: 'No emotion predicted yet' });
+app.get('/api/superadmin/therapists', authenticateSuperAdmin, async (req, res) => {
+  try {
+    const therapists = await Therapist.find({}, { username: 1, code: 1, _id: 1 }); // Fetch only necessary fields
+    res.status(200).json(therapists);
+  } catch (error) {
+    console.error('Error fetching therapists:', error);
+    res.status(500).json({ message: 'Failed to fetch therapists' });
   }
 });
-*/
+
+app.delete('/api/superadmin/delete-therapist/:id', authenticateSuperAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const therapist = await Therapist.findByIdAndDelete(id);
+
+    if (!therapist) {
+      return res.status(404).json({ message: 'Therapist not found' });
+    }
+
+    res.status(200).json({ message: 'Therapist deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting therapist:', error);
+    res.status(500).json({ message: 'Failed to delete therapist' });
+  }
+});
+
+// Middleware to authenticate Super Admin
+function authenticateSuperAdmin(req, res, next) {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ message: 'Unauthorized' });
+
+  try {
+    const decoded = jwt.verify(token, 'your_secret_key');
+    if (decoded.role !== 'superadmin') throw new Error();
+    next();
+  } catch {
+    res.status(403).json({ message: 'Forbidden' });
+  }
+}
 
 let currentPuzzleEmotions = [];
 
