@@ -89,7 +89,7 @@ const Child = mongoose.model('Child', childSchema);
 const feedbackSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true },
-  question: { type: String, required: true },
+  message: { type: String, required: true },
   createdAt: { type: Date, default: Date.now }
 });
 const Feedback = mongoose.model('Feedback', feedbackSchema);
@@ -581,16 +581,16 @@ app.get('/api/get-child-sessions', async (req, res) => {
 // Submit feedback
 app.post('/api/submit-feedback', async (req, res) => {
   try {
-    const { name, email, question } = req.body;
+    const { name, email, message } = req.body;
     
-    if (!name || !email || !question) {
+    if (!name || !email || !message) {
       return res.status(400).json({ error: "All fields are required" });
     }
     
     const feedback = new Feedback({
       name,
       email,
-      question
+      message
     });
     
     await feedback.save();
