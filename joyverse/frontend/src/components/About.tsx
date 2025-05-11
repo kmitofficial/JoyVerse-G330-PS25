@@ -163,58 +163,57 @@ const About = () => {
   };
 
   return (
-    <div style={styles.container}>
-      
-      
-      <div style={styles.contentWrapper}>
-        <h1 style={styles.mainHeading}>
-          About Our Vision
-        </h1>
-        
-        <p style={styles.mainDescription}>
-          We are pioneers in digital transformation, blending cutting-edge technology 
-          with human-centric design to create solutions that inspire and empower.
-        </p>
+<div style={styles.container}>
+  <div style={styles.contentWrapper}>
+    <h1 style={styles.mainHeading}>
+      About Joyverse
+    </h1>
+    
+    <p style={styles.mainDescription}>
+      Joyverse is a compassionate digital space designed to support children through therapeutic and educational interactions.
+      By combining emotion recognition, interactive games, and session tracking, we help therapists and educators understand 
+      each child’s emotional journey — one session at a time.
+    </p>
 
-        <div style={styles.sectionContainer}>
-          <h2 style={styles.sectionHeading}>What Drives Us</h2>
-          <div style={styles.cardGrid}>
-            <div style={styles.card}>
-              <h3 style={styles.cardTitle}>Innovation</h3>
-              <p style={styles.cardText}>
-                Pushing boundaries to create what's next in technology and design solutions.
-                We embrace emerging technologies and creative thinking.
-              </p>
-            </div>
-            
-            <div style={styles.card}>
-              <h3 style={styles.cardTitle}>Integrity</h3>
-              <p style={styles.cardText}>
-                Building trust through transparency and ethical practices.
-                We believe in doing what's right, not what's easy.
-              </p>
-            </div>
-            
-            <div style={styles.card}>
-              <h3 style={styles.cardTitle}>Impact</h3>
-              <p style={styles.cardText}>
-                Creating meaningful change in communities and industries.
-                Our solutions make a difference in people's lives.
-              </p>
-            </div>
-          </div>
+    <div style={styles.sectionContainer}>
+      <h2 style={styles.sectionHeading}>Our Purpose</h2>
+      <div style={styles.cardGrid}>
+        <div style={styles.card}>
+          <h3 style={styles.cardTitle}>Empathy through Technology</h3>
+          <p style={styles.cardText}>
+            We believe that technology should serve as a bridge, not a barrier. Joyverse uses facial emotion recognition 
+            to give therapists deeper insight into how a child feels — even when words fall short.
+          </p>
         </div>
-
-        <div style={styles.missionSection}>
-          <h2 style={styles.sectionHeading}>Our Mission</h2>
-          <p style={styles.mainDescription}>
-            To transform the digital landscape by creating innovative solutions that empower businesses 
-            and individuals to achieve their full potential. We're committed to sustainable development 
-            and fostering an inclusive digital future.
+        
+        <div style={styles.card}>
+          <h3 style={styles.cardTitle}>Clarity for Every Session</h3>
+          <p style={styles.cardText}>
+            Each session is more than just play — it's a window into a child's world. We track themes, emotions, 
+            and engagement, offering clear and meaningful reports to therapists and caregivers.
+          </p>
+        </div>
+        
+        <div style={styles.card}>
+          <h3 style={styles.cardTitle}>Personalized Growth</h3>
+          <p style={styles.cardText}>
+            Every child is unique. Joyverse adapts to emotional patterns and helps caregivers tailor their approach 
+            with care, understanding, and data-driven insights.
           </p>
         </div>
       </div>
-    </div> 
+    </div>
+
+    <div style={styles.missionSection}>
+      <h2 style={styles.sectionHeading}>Our Mission</h2>
+      <p style={styles.mainDescription}>
+        To create a supportive digital environment where children feel seen, understood, and encouraged — 
+        while empowering therapists and educators with tools that bring emotional clarity and personalized care.
+      </p>
+    </div>
+  </div>
+</div>
+
   );
 };
 

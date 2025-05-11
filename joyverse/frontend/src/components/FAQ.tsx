@@ -34,7 +34,7 @@ const FAQ = () => {
   
   const styles: Record<string, CSSProperties> = {
     container: {
-      backgroundImage: `url('/images/bg-4.jpg')`,
+      backgroundImage: 'url(/images/bg-4.jpg)',
       backgroundSize: '100% 100%',
       backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat',
@@ -204,8 +204,6 @@ const FAQ = () => {
 
   return (
     <div style={styles.container}>
-      
-      
       <div style={styles.contentWrapper}>
         <h1 style={styles.mainHeading}>
           Got Questions? We've Got Answers! 
@@ -218,37 +216,37 @@ const FAQ = () => {
 
         <div style={styles.faqSection}>
           <div style={styles.questionBlock}>
-            <h2 style={styles.question}> How does JoyVerse ensure personalized learning experiences for each child?</h2>
+            <h2 style={styles.question}>How does Joyverse help children during therapy sessions?</h2>
             <p style={styles.answer}>
-            JoyVerse tailors gameplay based on both therapist-assigned themes and real-time emotional feedback. It adjusts puzzle complexity, visual environments, and reinforcement mechanisms to each child's needs, promoting better retention and minimizing cognitive overload.
+              Joyverse uses fun games and activities while quietly observing how children respond emotionally. This helps therapists understand what activities work best for each child and track their progress over time.
             </p>
           </div>
 
           <div style={styles.questionBlock}>
-            <h2 style={styles.question}>Can the game be replayed multiple times without losing its novelty for children?</h2>
+            <h2 style={styles.question}>Is the camera always recording during sessions?</h2>
             <p style={styles.answer}>
-            Yes. JoyVerse randomizes theme assignments and puzzle content on every replay, and it uses emotional context to vary visual feedback and challenge levels. This ensures novelty and keeps the child engaged with fresh stimuli each session.
+              No, the camera only activates when you start a game or activity. We only use it to help understand emotions during specific activities, and all data is kept private and secure.
             </p>
           </div>
 
           <div style={styles.questionBlock}>
-            <h2 style={styles.question}>How are therapists supported in analyzing a child’s progress on JoyVerse?</h2>
+            <h2 style={styles.question}>What kind of games does Joyverse include?</h2>
             <p style={styles.answer}>
-            Therapists have access to a secure dashboard that displays child progress, emotional trends over time, and game performance. This helps them make informed decisions about intervention strategies and theme adjustments.
+              We have simple, engaging games like word puzzles and matching activities designed to be both fun and helpful for therapy. The games adapt based on what the therapist thinks will help each child most.
             </p>
           </div>
 
           <div style={styles.questionBlock}>
-            <h2 style={styles.question}> What are the future scalability plans for JoyVerse?</h2>
+            <h2 style={styles.question}>How do therapists see the results?</h2>
             <p style={styles.answer}>
-            JoyVerse plans to expand its AI capabilities to include speech recognition and personalized reading feedback. Additionally, it will introduce multi-language support, integrate with school LMS platforms, and offer predictive analytics for therapist insights.
+              Therapists get a private dashboard showing simple charts about how children responded during different activities. This helps them plan better sessions and see what's working well.
             </p>
           </div>
 
           <div style={styles.questionBlock}>
-            <h2 style={styles.question}>What age groups do you support?</h2>
+            <h2 style={styles.question}>Is Joyverse safe for children to use?</h2>
             <p style={styles.answer}>
-            JoyVerse is designed primarily for children aged 6 to 10, especially those with dyslexia or related learning differences. The game mechanics, vocabulary, visual design, and emotional feedback system are all optimized to support early literacy and cognitive development within this age range. Future versions aim to extend support to older children and early teens through adaptive difficulty and advanced game modules.
+              Absolutely! We take privacy and security very seriously. All data is encrypted, and only the child's therapist can access their information. We never share data with third parties.
             </p>
           </div>
         </div>

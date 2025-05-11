@@ -76,13 +76,10 @@ const Home: React.FC = () => {
               <Underline />
             </SectionTitle>
             <SectionContent>
-              Joyverse is dedicated to supporting the development of dyslexic children through therapist-guided educational games. Our platform combines cutting-edge learning science with engaging gameplay to create a supportive environment where children can thrive.
-            </SectionContent>
-            <SectionContent>
-              Founded by educators and learning specialists, Joyverse focuses on building confidence and skills through personalized learning paths. We believe that every child deserves to discover the joy of learning at their own pace and in ways that work best for them.
-            </SectionContent>
-            <SectionContent>
-              Our team works closely with experts in dyslexia, child development, and educational psychology to ensure our approach is both effective and enjoyable. With colorful graphics, intuitive interfaces, and adaptive challenges, we make learning an adventure!
+              Joyverse is a caring digital companion that supports children's emotional growth through play. 
+              Our interactive games and emotion-aware activities help therapists guide each child's unique 
+              learning journey. By gently tracking responses during sessions, we create meaningful insights 
+              while keeping the experience joyful and engaging.
             </SectionContent>
           </InfoSection>
 
@@ -94,24 +91,24 @@ const Home: React.FC = () => {
             <FAQAccordion>
               {[
                 {
-                  question: "What is JoyVerse and who is it designed for?",
-                  answer: "JoyVerse is an AI-powered educational platform designed specifically for dyslexic children. It offers engaging word search games that adapt dynamically based on the child’s emotional state, helping them learn in a stress-free and personalized environment."
+                  question: "How does Joyverse help children during therapy sessions?",
+                  answer: "Joyverse uses fun games and activities while quietly observing how children respond emotionally. This helps therapists understand what activities work best for each child and track their progress over time."
                 },
                 {
-                  question: "How does JoyVerse adapt to a child’s emotions during gameplay?",
-                  answer: "JoyVerse uses transformer-based facial expression recognition and temporal sentiment modeling from video feeds to detect a child's emotions in real time. Based on this data, the system adjusts game difficulty, animations, and themes to maintain motivation and reduce frustration."
+                  question: "Is the camera always recording during sessions?",
+                  answer: "No, the camera only activates when you start a game or activity. We only use it to help understand emotions during specific activities, and all data is kept private and secure."
                 },
                 {
-                  question: "What role do therapists play in JoyVerse?",
-                  answer: "Therapists register on JoyVerse, add child profiles, and assign three out of five available visual themes (e.g., Forest, Space, Underwater). These themes change dynamically when the child replays games, ensuring variety and continued engagement."
+                  question: "What kind of games does Joyverse include?",
+                  answer: "We have simple, engaging games like word puzzles and matching activities designed to be both fun and helpful for therapy. The games adapt based on what the therapist thinks will help each child most."
                 },
                 {
-                  question: "What makes JoyVerse’s word search game different from others?",
-                  answer: "JoyVerse includes theme-based puzzles, hint images, animated feedback (like confetti or “Wrong” messages), and emotional adaptivity. Levels progress from 3-letter to 5-letter word searches with increasing complexity, ensuring both educational value and enjoyment."
+                  question: "How do therapists see the results?",
+                  answer: "Therapists get a private dashboard showing simple charts about how children responded during different activities. This helps them plan better sessions and see what's working well."
                 },
                 {
-                  question: "What technologies power JoyVerse?",
-                  answer: "JoyVerse is built with the MERN stack (MongoDB, Express, React, Node.js) and leverages AI models including transformer-based emotion detection, facial expression analysis, and sentiment analysis. It integrates animations, therapist dashboards, and real-time UI updates."
+                  question: "Is Joyverse safe for children to use?",
+                  answer: "Absolutely! We take privacy and security very seriously. All data is encrypted, and only the child's therapist can access their information. We never share data with third parties."
                 }
               ].map((faq, index) => (
                 <FAQItem key={index}>
@@ -157,7 +154,6 @@ const Home: React.FC = () => {
     </>
   );
 };
-
 // Global Styles
 const GlobalStyle = createGlobalStyle`
   * {
