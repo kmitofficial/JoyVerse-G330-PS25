@@ -1,45 +1,43 @@
 import * as faceapi from 'face-api.js';
 import { FaceApiModel } from './types';
-import { MODEL_URL } from './config';
+
+// Use the same CDN as Game.tsx
+const MODEL_CDN_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
 
 export async function loadFaceApi(): Promise<FaceApiModel> {
-  try {
-    // Load all required models for better emotion detection
-    await Promise.all([
-      faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-      faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
-      faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-      faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
-    ]);
+  // Load only the required models
+  await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_CDN_URL);
+  await faceapi.nets.faceExpressionNet.loadFromUri(MODEL_CDN_URL);
+  await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_CDN_URL);
 
-    return {
-      type: 'face-api',
-      detectEmotion: async (video: HTMLVideoElement) => {
-        try {
-          const result = await faceapi
-            .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
-            .withFaceLandmarks()
-            .withFaceExpressions();
-
-          if (!result?.expressions) {
-            console.log('No face or expressions detected');
-            return null;
-          }
-
-          // Get most confident expression
-          const entries = Object.entries(result.expressions);
-          const sorted = entries.sort((a, b) => b[1] - a[1]);
-          console.log('Detected expressions:', entries);
-          console.log('Most confident expression:', sorted[0]);
-          return sorted[0][0]; // e.g. 'happy', 'sad', etc.
-        } catch (error) {
-          console.error('Error detecting emotion:', error);
+  return {
+    type: 'face-api',
+    detectEmotion: async (video: HTMLVideoElement) => {
+      try {
+        if (!video || video.readyState < 2) {
           return null;
         }
+        const options = new faceapi.TinyFaceDetectorOptions({
+          inputSize: 224,
+          scoreThreshold: 0.5
+        });
+        const result = await faceapi
+          .detectSingleFace(video, options)
+          .withFaceExpressions();
+        if (!result?.expressions) {
+          return null;
+        }
+        const expressions = result.expressions;
+        const sorted = Object.entries(expressions).sort((a, b) => b[1] - a[1]);
+        if (sorted.length > 0) {
+          const [emotion] = sorted[0];
+          return emotion;
+        }
+        return null;
+      } catch (error) {
+        console.error('Error detecting emotion:', error);
+        return null;
       }
-    };
-  } catch (error) {
-    console.error('Error loading face-api models:', error);
-    throw new Error('Failed to load face-api models');
-  }
+    }
+  };
 }
