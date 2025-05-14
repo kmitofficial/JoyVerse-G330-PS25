@@ -898,6 +898,16 @@ app.get('/api/wordlists', async (req, res) => {
   }
 });
 
+// Add face-api related endpoints
+app.post('/api/faceapi-emotion', (req, res) => {
+  const { emotion } = req.body;
+  if (!emotion) {
+    return res.status(400).json({ error: 'No emotion provided' });
+  }
+  currentPuzzleEmotions.push(emotion);
+  res.json({ success: true });
+});
+
 // Start the server
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
