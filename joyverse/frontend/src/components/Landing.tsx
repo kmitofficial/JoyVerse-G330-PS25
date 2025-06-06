@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
@@ -71,11 +70,10 @@ const Landing: React.FC = () => {
             <Instructions>
               <InstructionTitle>🎮 How to Play 🎮</InstructionTitle>
               <InstructionList>
-                <li>🔍 Find the hidden word shown in the picture above the grid.</li>
-                <li>🟦 Tap letters in the grid to spell the word — in the right order!</li>
-                <li>💡 The word may be hidden horizontally or vertically.</li>
-                <li>❌ Picked the wrong letters? Tap again to deselect!</li>
-                <li>🎉 Finish all the puzzles to win confetti and become a Word Champ!</li>
+                <li>Look at the picture to find the word.</li>
+                <li>Tap letters in order to spell it!</li>
+                <li>Words can go across or up and down.</li>
+                <li>❌ Spelled it wrong? You can tap again to choose new letters!</li>
               </InstructionList>
             </Instructions>
 
@@ -166,19 +164,19 @@ const InstructionTitle = styled.h2`
 `;
 
 const InstructionList = styled.ul`
-  list-style: none;
-  padding-left: 0;
+  list-style: disc;
+  padding-left: 1.2em;
   color: #333;
 
   li {
     margin-bottom: 0.5rem;
     font-size: 0.95rem;
-    display: flex;
+    display: list-item;
     align-items: center;
-
+    /* Remove emoji pointer */
     &::before {
-      content: '🎈';
-      margin-right: 0.5rem;
+      content: '';
+      margin-right: 0;
     }
   }
 `;

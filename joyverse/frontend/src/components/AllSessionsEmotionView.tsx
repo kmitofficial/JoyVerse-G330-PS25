@@ -30,7 +30,7 @@ export const AllSessionsEmotionView = () => {
   const getEmotionColor = (emotion: string | undefined | null): string => {
     // Use the same color mapping as in your dashboard
     const emotionColors: Record<string, string> = {
-      happy: '#4CAF50',
+      happiness: '#4CAF50',
       sad: '#5C6BC0',
       anger: '#FF0000',
       fear: '#FF9800',

@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { PieChart, BarChart, Bar, Pie, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Cell } from 'recharts';
+import { PieChart, Pie, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 // Types/interfaces
 interface Session {
@@ -40,14 +39,17 @@ const TherapistDashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedChild, setSelectedChild] = useState<Child | null>(null);
-  const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null); // Track the expanded session
+  const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [passwordChangeMessage, setPasswordChangeMessage] = useState('');
+  const [deleteConfirmChild, setDeleteConfirmChild] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
   const navigate = useNavigate();
 
-  // Apply background on mount
+  // Set background and get therapist data
   useEffect(() => {
     document.body.style.backgroundImage = "url('/images/bg-6.jpg')";
     document.body.style.backgroundSize = "cover";
@@ -69,6 +71,7 @@ const TherapistDashboard: React.FC = () => {
     fetchTherapistData(username);
   }, [navigate]);
 
+  // Fetch therapist data
   const fetchTherapistData = async (username: string) => {
     try {
       const response = await fetch('http://localhost:5000/api/get-therapist', {
@@ -91,6 +94,7 @@ const TherapistDashboard: React.FC = () => {
     }
   };
 
+  // Add child
   const handleAddChild = async () => {
     if (!newChildUsername.trim()) {
       setError('Enter a child username');
@@ -121,83 +125,82 @@ const TherapistDashboard: React.FC = () => {
       console.error('Error adding child:', err);
     }
   };
-// Helper to prepare emotion data for chart
-const prepareEmotionData = (session: Session) => {
-  if (!session.emotionsOfChild || session.emotionsOfChild.length === 0) return [];
-  
-  const emotionCounts: {[key: string]: number} = {};
-  
-  session.emotionsOfChild.forEach(emotion => {
-    const normalizedEmotion = emotion.toLowerCase();
-    emotionCounts[normalizedEmotion] = (emotionCounts[normalizedEmotion] || 0) + 1;
-  });
-  
-  return Object.entries(emotionCounts).map(([emotion, count]) => ({
-    emotion,
-    count
-  }));
-};
 
+  // Delete child
+  const handleDeleteChild = async (childUsername: string) => {
+    if (!deleteConfirmChild) {
+      setDeleteConfirmChild(childUsername);
+      return;
+    }
 
-// Helper to prepare puzzle data for chart
-const preparePuzzleData = (session: Session) => {
-  if (!session.playedPuzzles || session.playedPuzzles.length === 0) return [];
-  
-  const puzzleCounts: {[key: string]: number} = {};
-  
-  session.playedPuzzles.forEach(puzzle => {
-    puzzleCounts[puzzle] = (puzzleCounts[puzzle] || 0) + 1;
-  });
-  
-  return Object.entries(puzzleCounts).map(([name, count]) => ({
-    name,
-    count
-  }));
-};
+    setIsDeleting(true);
+    try {
+      const response = await fetch('http://localhost:5000/api/delete-child', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          therapistCode: therapistCode,
+          childName: childUsername
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        await fetchTherapistData(therapistUsername);
+        setDeleteConfirmChild(null);
+        setError(null);
+        if (selectedChild?.username === childUsername) {
+          setSelectedChild(null);
+        }
+      } else {
+        setError(data.message || 'Failed to delete child');
+      }
+    } catch (err) {
+      setError('Network error');
+      console.error('Error deleting child:', err);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Prepare emotion data for chart
+  const prepareEmotionData = (session: Session) => {
+    if (!session.emotionsOfChild || session.emotionsOfChild.length === 0) return [];
+    const emotionCounts: {[key: string]: number} = {};
+    session.emotionsOfChild.forEach(emotion => {
+      const normalizedEmotion = emotion.toLowerCase();
+      emotionCounts[normalizedEmotion] = (emotionCounts[normalizedEmotion] || 0) + 1;
+    });
+    return Object.entries(emotionCounts).map(([emotion, count]) => ({
+      emotion,
+      count
+    }));
+  };
+
+  // Assign themes
   const handleAssignThemes = (childUsername: string) => {
     sessionStorage.setItem('selectedChild', childUsername);
     sessionStorage.setItem('selectedChildTherapistCode', therapistCode);
     navigate('/theme-assignment');
   };
 
+  // Logout
   const handleLogout = () => {
     sessionStorage.clear();
     navigate('/');
   };
 
+  // Child click
   const handleChildClick = (child: Child) => {
     setSelectedChild(selectedChild?.username === child.username ? null : child);
   };
 
-  // Get emotion color for visual indication
-  // const getEmotionColor = (emotion: string | undefined | null): string => {
-  //   const emotionColors: { [key: string]: string } = {
-  //     happy: '#4CAF50',
-  //     sad: '#5C6BC0',
-  //     angry: '#FF0000',
-  //     scared: '#FF9800',
-  //     neutral: '#9E9E9E',
-  //     surprised: '#8E24AA',
-  //     excited: '#FFD600',
-  //     calm: '#03A9F4',
-  //     unknown: '#9E9E9E',
-  //   };
-  //   if (typeof emotion !== 'string') {
-  //     return emotionColors.unknown;
-  //   }
-  //   const normalizedEmotion = emotion.toLowerCase();
-  //   for (const key in emotionColors) {
-  //     if (normalizedEmotion.includes(key)) {
-  //       return emotionColors[key];
-  //     }
-  //   }
-  //   return emotionColors.unknown;
-  // };
+  // Get emotion color
   const getEmotionColor = (emotion: string | undefined | null): string => {
     if (!emotion) return '#9E9E9E'; // Handle undefined/null
-    
     const emotionColors: { [key: string]: string } = {
-      happy: '#4CAF50',
+      happiness: '#4CAF50',
       sad: '#5C6BC0',
       anger: '#FF0000',
       fear: '#FF9800',
@@ -207,27 +210,21 @@ const preparePuzzleData = (session: Session) => {
       calm: '#03A9F4',
       unknown: '#9E9E9E',
     };
-  
     const normalizedEmotion = emotion.trim().toLowerCase();
-    
-    // Exact match first
     if (emotionColors[normalizedEmotion]) {
       return emotionColors[normalizedEmotion];
     }
-  
-    // Then check for partial matches
     const matchingKey = Object.keys(emotionColors).find(key => 
       normalizedEmotion.includes(key)
     );
-  
     return matchingKey ? emotionColors[matchingKey] : emotionColors.unknown;
   };
-  // Helper function to process theme transitions for display
+
+  // Process theme transitions for display
   const processThemeTransitions = (session: Session): ThemeTransition[] => {
     if (!session.assignedThemes || session.assignedThemes.length === 0) {
       return [];
     }
-
     const firstTheme = session.assignedThemes[0];
     const results: ThemeTransition[] = [{
       type: 'start',
@@ -237,13 +234,11 @@ const preparePuzzleData = (session: Session) => {
 
     if (session.themesChanged && session.themesChanged.length > 0) {
       let currentTheme = firstTheme;
-
       for (let i = 0; i < session.themesChanged.length; i++) {
         const nextTheme = session.themesChanged[i];
         const emotion = i + 1 < session.emotionsOfChild.length
           ? session.emotionsOfChild[i + 1]
           : 'unknown';
-
         results.push({
           type: 'transition',
           from: currentTheme,
@@ -251,14 +246,13 @@ const preparePuzzleData = (session: Session) => {
           emotion: emotion,
           isSameTheme: currentTheme === nextTheme
         } as ThemeTransition);
-
         currentTheme = nextTheme;
       }
     }
     return results;
   };
 
-  // Format date for better display
+  // Format date for display
   const formatSessionDate = (dateString: string | Date) => {
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('en-US', {
@@ -269,33 +263,23 @@ const preparePuzzleData = (session: Session) => {
       minute: '2-digit'
     }).format(date);
   };
-  const preparePuzzleEmotionData = (session: Session, puzzle: string) => {
-    const emotionCounts: {[key: string]: number} = {};
-    
-    session.playedPuzzles?.forEach((p, index) => {
-      if (p === puzzle && session.emotionsOfChild?.[index]) {
-        const emotion = session.emotionsOfChild[index];
-        emotionCounts[emotion] = (emotionCounts[emotion] || 0) + 1;
-      }
-    });
-  
-    return Object.entries(emotionCounts).map(([emotion, count]) => ({
-      emotion,
-      count
-    }));
-  };
+
+  // Toggle session expand/collapse
   const toggleSession = (sessionId: string) => {
-    setExpandedSessionId((prev) => (prev === sessionId ? null : sessionId)); // Toggle the session
+    setExpandedSessionId((prev) => (prev === sessionId ? null : sessionId));
   };
+
+  // Filter children by search query
   const filteredChildren = children.filter((child) =>
     child.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Change password
   const handleChangePassword = async () => {
     if (!currentPassword || !newPassword) {
       setPasswordChangeMessage('Please fill in all fields');
       return;
     }
-  
     try {
       const response = await fetch('http://localhost:5000/api/change-password', {
         method: 'POST',
@@ -306,7 +290,6 @@ const preparePuzzleData = (session: Session) => {
           newPassword,
         }),
       });
-  
       const data = await response.json();
       if (response.ok) {
         setPasswordChangeMessage('Password changed successfully');
@@ -319,16 +302,50 @@ const preparePuzzleData = (session: Session) => {
       setPasswordChangeMessage('Server error');
     }
   };
+
   if (loading) return <LoadingContainer>Loading...</LoadingContainer>;
   if (error) return <ErrorContainer>Error: {error}</ErrorContainer>;
-  
+
   return (
     <Container>
       <Header>
         <Title>THERAPIST DASHBOARD</Title>
-        <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
+        <HeaderActions>
+          <ChangePasswordButton onClick={() => setShowChangePassword(true)}>
+            Change Password
+          </ChangePasswordButton>
+          <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
+        </HeaderActions>
       </Header>
-  
+
+      {/* Change Password Popup Modal */}
+      {showChangePassword && (
+        <ChangePasswordModalOverlay>
+          <ChangePasswordModal>
+            <ModalCloseButton onClick={() => setShowChangePassword(false)}>×</ModalCloseButton>
+            <SectionHeader>
+              <h2>Change Password</h2>
+            </SectionHeader>
+            <InputGroup>
+              <Input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Current Password"
+              />
+              <Input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="New Password"
+              />
+              <Button onClick={handleChangePassword}>Change Password</Button>
+            </InputGroup>
+            {passwordChangeMessage && <ErrorMessage>{passwordChangeMessage}</ErrorMessage>}
+          </ChangePasswordModal>
+        </ChangePasswordModalOverlay>
+      )}
+
       <InfoSection>
         <InfoCard>
           <h3>Your Therapist Code</h3>
@@ -336,7 +353,7 @@ const preparePuzzleData = (session: Session) => {
           <small>Share this code with your children to let them join</small>
         </InfoCard>
       </InfoSection>
-  
+
       <Section>
         <SectionHeader>
           <h2>Your Children</h2>
@@ -347,7 +364,7 @@ const preparePuzzleData = (session: Session) => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </SectionHeader>
-  
+
         <AddChildSection>
           <InputGroup>
             <Input
@@ -360,7 +377,7 @@ const preparePuzzleData = (session: Session) => {
           </InputGroup>
           {error && <ErrorMessage>{error}</ErrorMessage>}
         </AddChildSection>
-  
+
         {filteredChildren.length === 0 ? (
           <EmptyState>No children found</EmptyState>
         ) : (
@@ -373,7 +390,19 @@ const preparePuzzleData = (session: Session) => {
                 >
                   <ChildCardHeader>
                     <h3>{child.username}</h3>
-                    <SessionsCount>{child.sessions?.length || 0} Sessions</SessionsCount>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <SessionsCount>{child.sessions?.length || 0} Sessions</SessionsCount>
+                      <DeleteButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteChild(child.username);
+                        }}
+                        title="Delete child"
+                        aria-label="Delete child"
+                      >
+                        ×
+                      </DeleteButton>
+                    </div>
                   </ChildCardHeader>
                   <ChildCardContent>
                     <p>Joined: {new Date(child.joinedAt).toLocaleDateString()}</p>
@@ -398,13 +427,14 @@ const preparePuzzleData = (session: Session) => {
                     Assign Themes
                   </ActionButton>
                   <ActionButton
-                    onClick={() =>
+                    onClick={(e) => {
+                      e.stopPropagation();
                       navigate('/all-sessions-emotions', {
                         state: {
                           allSessions: child.sessions || [],
                         },
-                      })
-                    }
+                      });
+                    }}
                     style={{ marginTop: '10px' }}
                   >
                     View All Sessions Emotions
@@ -467,7 +497,6 @@ const preparePuzzleData = (session: Session) => {
                                       <ThemeJourneyTimeline>
                                         {themeTransitions.map((transition, index) => {
                                           const emotionColor = getEmotionColor(transition.emotion);
-                                          
                                           if (transition.type === 'start') {
                                             return (
                                               <TimelineItem key={`start-${index}`} isFirst={true}>
@@ -506,108 +535,70 @@ const preparePuzzleData = (session: Session) => {
                                       </ThemeJourneyTimeline>
                                     </SessionSection>
                                   )}
-  
-                                  {/* Emotion Distribution Pie Chart
+
                                   <SessionSection>
                                     <SectionTitle>Emotion Summary</SectionTitle>
-                                    <ChartContainer>
-                                      <ResponsiveContainer width="100%" height={300}>
-                                        <PieChart>
-                                          <Pie
-                                            data={prepareEmotionData(session)}
-                                            cx="50%"
-                                            cy="50%"
-                                            labelLine={false}
-                                            outerRadius={80}
-                                            fill="#8884d8"
-                                            dataKey="count"
-                                            nameKey="emotion"
-                                            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                                          >
-                                            {prepareEmotionData(session).map((entry, index) => (
-                                              <Cell key={`cell-${index}`} fill={getEmotionColor(entry.emotion)} />
-                                            ))}
-                                          </Pie>
-                                          <Tooltip 
-                                            formatter={(value: number, name: string) => [
-                                              value, 
-                                              `${name}: ${((value as number / session.emotionsOfChild.length) * 100).toFixed(1)}%`
-                                            ]}
-                                          />
-                                          <Legend />
-                                        </PieChart>
-                                      </ResponsiveContainer>
-                                    </ChartContainer>
-                                  </SessionSection> */}
-                                  <SessionSection>
-  <SectionTitle>Emotion Summary</SectionTitle>
-  <div style={{ 
-    display: 'flex', 
-    alignItems: 'center', 
-    gap: '16px', // Adjust spacing between legend and chart
-    justifyContent: 'center', // Center the whole group
-  }}>
-    {/* Pie Chart (Right Side) */}
-    <div style={{ width: '60%', maxWidth: '300px' }}>
-      <ResponsiveContainer width="100%" height={300}>
-        <PieChart>
-          <Pie
-            data={prepareEmotionData(session)}
-            cx="50%"
-            cy="50%"
-            labelLine={false}
-            outerRadius={80}
-            fill="#8884d8"
-            dataKey="count"
-            nameKey="emotion"
-            label={false} // Hide labels on slices
-          >
-            {prepareEmotionData(session).map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={getEmotionColor(entry.emotion)} />
-            ))}
-          </Pie>
-          <Tooltip 
-            formatter={(value: number, name: string) => [
-              value, 
-              `${name}: ${((value / session.emotionsOfChild.length) * 100).toFixed(1)}%`
-            ]}
-          />
-        </PieChart>
-      </ResponsiveContainer>
-    </div>
-
-    {/* Emotion Legend (Left Side, Close to Chart) */}
-    <div style={{ 
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '8px',
-      paddingLeft: '16px', // Space between chart and legend
-    }}>
-      {prepareEmotionData(session).map((entry, index) => (
-        <div key={`legend-${index}`} style={{ 
-          display: 'flex', 
-          alignItems: 'center',
-          fontSize: '14px',
-        }}>
-          <div style={{
-            width: '12px',
-            height: '12px',
-            backgroundColor: getEmotionColor(entry.emotion),
-            marginRight: '8px',
-            borderRadius: '2px',
-          }} />
-          <span>
-            {entry.emotion}: <strong>{((entry.count / session.emotionsOfChild.length) * 100).toFixed(0)}%</strong>
-          </span>
-        </div>
-      ))}
-    </div>
-  </div>
-</SessionSection>
+                                    <div style={{ 
+                                      display: 'flex', 
+                                      alignItems: 'center', 
+                                      gap: '16px',
+                                      justifyContent: 'center',
+                                    }}>
+                                      <div style={{ width: '60%', maxWidth: '300px' }}>
+                                        <ResponsiveContainer width="100%" height={300}>
+                                          <PieChart>
+                                            <Pie
+                                              data={prepareEmotionData(session)}
+                                              cx="50%"
+                                              cy="50%"
+                                              labelLine={false}
+                                              outerRadius={80}
+                                              fill="#8884d8"
+                                              dataKey="count"
+                                              nameKey="emotion"
+                                              label={false}
+                                            >
+                                              {prepareEmotionData(session).map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={getEmotionColor(entry.emotion)} />
+                                              ))}
+                                            </Pie>
+                                            <Tooltip 
+                                              formatter={(value: number, name: string) => [
+                                                value, 
+                                                `${name}: ${((value / session.emotionsOfChild.length) * 100).toFixed(1)}%`
+                                              ]}
+                                            />
+                                          </PieChart>
+                                        </ResponsiveContainer>
+                                      </div>
+                                      <div style={{ 
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '8px',
+                                        paddingLeft: '16px',
+                                      }}>
+                                        {prepareEmotionData(session).map((entry, index) => (
+                                          <div key={`legend-${index}`} style={{ 
+                                            display: 'flex', 
+                                            alignItems: 'center',
+                                            fontSize: '14px',
+                                          }}>
+                                            <div style={{
+                                              width: '12px',
+                                              height: '12px',
+                                              backgroundColor: getEmotionColor(entry.emotion),
+                                              marginRight: '8px',
+                                              borderRadius: '2px',
+                                            }} />
+                                            <span>
+                                              {entry.emotion}: <strong>{((entry.count / session.emotionsOfChild.length) * 100).toFixed(0)}%</strong>
+                                            </span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </SessionSection>
   
-                              
-  
-                                  {/* Puzzles Played Bar Chart */}
                                   {session.playedPuzzles && session.playedPuzzles.length > 0 && (
                                     <SessionSection>
                                       <SectionTitle>Puzzles Played</SectionTitle>
@@ -628,30 +619,37 @@ const preparePuzzleData = (session: Session) => {
           </ChildrenGrid>
         )}
       </Section>
-      <Section>
-  <SectionHeader>
-    <h2>Change Password</h2>
-  </SectionHeader>
-  <InputGroup>
-    <Input
-      type="password"
-      value={currentPassword}
-      onChange={(e) => setCurrentPassword(e.target.value)}
-      placeholder="Current Password"
-    />
-    <Input
-      type="password"
-      value={newPassword}
-      onChange={(e) => setNewPassword(e.target.value)}
-      placeholder="New Password"
-    />
-    <Button onClick={handleChangePassword}>Change Password</Button>
-  </InputGroup>
-  {passwordChangeMessage && <ErrorMessage>{passwordChangeMessage}</ErrorMessage>}
-</Section>
+
+      {deleteConfirmChild && (
+        <ConfirmationOverlay>
+          <ConfirmationModal>
+            <ConfirmationHeader>
+              <WarningIcon>⚠️</WarningIcon>
+              <h3>Confirm Deletion</h3>
+            </ConfirmationHeader>
+            <ConfirmationContent>
+              <p>Are you sure you want to delete <strong>{deleteConfirmChild}</strong>?</p>
+              <p>This action will permanently remove the child and all their session data.</p>
+            </ConfirmationContent>
+            <ConfirmationActions>
+              <CancelButton 
+                onClick={() => setDeleteConfirmChild(null)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </CancelButton>
+              <ConfirmDeleteButton 
+                onClick={() => handleDeleteChild(deleteConfirmChild)}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </ConfirmDeleteButton>
+            </ConfirmationActions>
+          </ConfirmationModal>
+        </ConfirmationOverlay>
+      )}
     </Container>
   );
-  
 };
 
 // Styled Components
@@ -830,87 +828,109 @@ const ChildCardHeader = styled.div`
   
   h3 {
     margin: 0;
-    color: #333;
-    font-size: 18px;
+    color: #2c3e50;
     font-weight: 700;
+    font-size: 18px;
+  }
+`;
+
+const SessionsCount = styled.span`
+  background-color: #e8f4fd;
+  color: #5a7af0;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+`;
+
+const DeleteButton = styled.button`
+  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  color: white;
+  font-size: 20px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: linear-gradient(135deg, #ff5252, #d32f2f);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(238, 90, 82, 0.4);
+  }
+  
+  &:active {
+    transform: translateY(0);
   }
 `;
 
 const ChildCardContent = styled.div`
+  margin-bottom: 15px;
+  
   p {
     margin: 8px 0;
-    color: #555;
+    color: #666;
     font-size: 14px;
   }
 `;
 
 const ThemesWrapper = styled.div`
-  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   
   p {
-    margin-bottom: 8px;
+    margin: 0;
     font-weight: 600;
+    color: #555;
   }
 `;
 
 const ThemesList = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 `;
 
 const ThemeTag = styled.span<{ empty?: boolean }>`
-  background-color: ${props => props.empty ? '#f0f0f0' : '#e9efff'};
+  background-color: ${props => props.empty ? '#f8f9fa' : '#e8f4fd'};
   color: ${props => props.empty ? '#999' : '#5a7af0'};
-  padding: 4px 10px;
-  border-radius: 30px;
+  padding: 4px 8px;
+  border-radius: 12px;
   font-size: 12px;
   font-weight: 500;
-  display: inline-block;
-`;
-
-const ThemeWrapper = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
-`;
-
-const SessionsCount = styled.span`
-  background-color: #f0f4ff;
-  color: #5a7af0;
-  padding: 4px 10px;
-  border-radius: 30px;
-  font-size: 12px;
-  font-weight: 600;
+  border: ${props => props.empty ? '1px dashed #ccc' : 'none'};
 `;
 
 const ActionButton = styled.button`
-  padding: 10px 16px; 
-  background-color: #6e8efb; 
-  color: white;
-  border: none; 
-  border-radius: 8px; 
-  cursor: pointer; 
-  margin-top: 15px; 
   width: 100%;
+  padding: 10px;
+  background-color: #5a7af0;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
   font-weight: 600;
   transition: all 0.2s ease;
   
-  &:hover { 
-    background-color: #5a7af0;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(90, 122, 240, 0.3);
+  &:hover {
+    background-color: #4a67cc;
+    transform: translateY(-1px);
   }
 `;
 
 const SessionsContainer = styled.div`
   grid-column: 1 / -1;
-  padding: 30px;
   background-color: rgba(255, 255, 255, 0.95);
   border-radius: 12px;
-  margin-top: -10px;
-  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
+  padding: 25px;
+  margin-top: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
   backdrop-filter: blur(10px);
 `;
 
@@ -919,72 +939,69 @@ const SessionsContainerHeader = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 2px solid #f0f0f0;
   padding-bottom: 15px;
   
   h4 {
     margin: 0;
-    font-size: 20px;
+    color: #2c3e50;
     font-weight: 700;
-    color: #333;
+    font-size: 20px;
   }
 `;
 
 const EmptySessionsState = styled.div`
   text-align: center;
   padding: 40px;
-  color: #888;
-  background-color: #f8f9fa;
-  border-radius: 8px;
+  color: #999;
   
   p {
-    margin-top: 10px;
+    margin: 10px 0 0 0;
     font-size: 16px;
   }
 `;
 
 const NoSessionsIcon = styled.div`
-  font-size: 36px;
+  font-size: 48px;
   margin-bottom: 10px;
 `;
 
 const SessionsList = styled.div`
-  display: grid;
-  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 `;
 
 const SessionCard = styled.div`
-  background-color: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
-  overflow: hidden;
+  background-color: #fafbfc;
+  border-radius: 10px;
+  padding: 20px;
+  border-left: 4px solid #5a7af0;
   transition: all 0.2s ease;
   
   &:hover {
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-    transform: translateY(-2px);
+    background-color: #f5f7fa;
+    transform: translateX(2px);
   }
 `;
 
 const SessionHeader = styled.div`
-  background-color: #f7f9ff;
-  padding: 15px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #eef2ff;
+  cursor: pointer;
 `;
 
 const SessionDate = styled.div`
   display: flex;
   align-items: center;
-  color: #5a7af0;
+  gap: 8px;
   font-weight: 600;
-  font-size: 14px;
+  color: #2c3e50;
+  font-size: 16px;
 `;
 
 const CalendarIcon = styled.span`
-  margin-right: 8px;
   font-size: 16px;
 `;
 
@@ -996,21 +1013,38 @@ const SessionStats = styled.div`
 const StatBadge = styled.div`
   display: flex;
   align-items: center;
-  background-color: #e9efff;
+  gap: 4px;
+  background-color: #e8f4fd;
   color: #5a7af0;
-  padding: 5px 10px;
-  border-radius: 30px;
+  padding: 6px 12px;
+  border-radius: 20px;
   font-size: 12px;
   font-weight: 600;
 `;
 
 const StatIcon = styled.span`
-  margin-right: 4px;
   font-size: 14px;
 `;
 
+const ToggleArrow = styled.button`
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  color: #5a7af0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: #e8f4fd;
+  }
+`;
+
 const SessionBody = styled.div`
-  padding: 20px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
 `;
 
 const SessionSection = styled.div`
@@ -1022,98 +1056,104 @@ const SessionSection = styled.div`
 `;
 
 const SectionTitle = styled.h5`
-  margin: 0 0 12px 0;
+  margin: 0 0 15px 0;
+  color: #2c3e50;
+  font-weight: 700;
   font-size: 16px;
-  font-weight: 600;
-  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+`;
+
+const ThemeWrapper = styled.div`
   display: flex;
-  align-items: center;
-  
-  &:after {
-    content: "";
-    flex-grow: 1;
-    height: 1px;
-    background-color: #eee;
-    margin-left: 10px;
-  }
+  flex-wrap: wrap;
+  gap: 8px;
 `;
 
 const ThemeJourneyTimeline = styled.div`
-  position: relative;
-  margin-left: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 `;
 
 const TimelineItem = styled.div<{ isFirst?: boolean }>`
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
   position: relative;
-  padding-left: 30px;
-  padding-bottom: ${props => props.isFirst ? '25px' : '20px'};
-  
-  &:last-child {
-    padding-bottom: 0;
-  }
 `;
 
 const TimelineConnector = styled.div<{ isFirst?: boolean }>`
-  position: absolute;
-  left: 10px;
-  top: ${props => props.isFirst ? '28px' : '0'};
-  bottom: 0;
   width: 2px;
-  background-color: #eef2ff;
+  height: 40px;
+  background-color: ${props => props.isFirst ? 'transparent' : '#ddd'};
+  position: absolute;
+  left: 11px;
+  top: -40px;
 `;
 
 const TimelineBubble = styled.div<{ color: string }>`
-  position: absolute;
-  left: 0;
-  top: 3px;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background-color: white;
-  border: 2px solid #eef2ff;
+  background-color: ${props => props.color};
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
 const EmotionIndicator = styled.div<{ color: string }>`
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background-color: ${props => props.color};
+  background-color: white;
+  opacity: 0.9;
 `;
 
 const TimelineContent = styled.div`
-  background-color: #f7f9ff;
-  border-radius: 8px;
-  padding: 12px 15px;
+  flex: 1;
+  padding-top: 2px;
 `;
 
 const TimelineTitle = styled.div`
   font-weight: 600;
-  color: #333;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
+  color: #2c3e50;
+  margin-bottom: 4px;
 `;
 
 const TimelineDetail = styled.div`
+  font-size: 12px;
   color: #666;
-  font-size: 13px;
-  margin-top: 6px;
 `;
 
 const StayedIndicator = styled.span`
-  color: #888;
-  font-size: 12px;
-  font-weight: normal;
+  color: #666;
+  font-style: italic;
+  font-size: 14px;
 `;
 
 const TransitionArrow = styled.span`
   color: #5a7af0;
   font-weight: bold;
+  margin: 0 4px;
+`;
+
+const SearchInput = styled.input`
+  padding: 10px 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  width: 250px;
+  font-size: 14px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  
+  &:focus {
+    outline: none;
+    border-color: #5a7af0;
+    box-shadow: 0 0 0 2px rgba(90, 122, 240, 0.2);
+  }
 `;
 
 const LoadingContainer = styled.div`
@@ -1122,82 +1162,208 @@ const LoadingContainer = styled.div`
   align-items: center;
   height: 100vh;
   font-size: 18px;
-  color: #5a7af0;
+  color: #666;
 `;
 
 const ErrorContainer = styled.div`
-  max-width: 600px;
-  margin: 100px auto;
-  padding: 20px;
-  background-color: #fdeaea;
-  border-left: 4px solid #e74c3c;
-  border-radius: 8px;
-  color: #e74c3c;
-`;
-const ChartContainer = styled.div`
-  margin-top: 20px;
-  height: 250px;
-  background-color: white;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-`;
-
-const ChartTitle = styled.h6`
-  margin: 0 0 15px 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: #555;
-  text-align: center;
-`;
-const PuzzlesGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
-  margin-top: 15px;
-`;
-
-const PuzzleChartContainer = styled.div`
-  background: white;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-`;
-
-const PuzzleTitle = styled.h5`
-  margin: 0 0 10px 0;
-  text-align: center;
-  color: #333;
-`;
-const ToggleArrow = styled.div`
-  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
   font-size: 18px;
-  color: #5a7af0;
-  margin-left: 10px;
-  &:hover {
-    color: #4a67cc;
+  color: #e74c3c;
+  background-color: #fdeaea;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px;
+`;
+
+const ConfirmationOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+`;
+
+const ConfirmationModal = styled.div`
+  background-color: white;
+  border-radius: 12px;
+  padding: 30px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  animation: modalSlideIn 0.3s ease-out;
+  
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-50px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
   }
 `;
-const SearchBarContainer = styled.div`
-  margin-bottom: 20px;
+
+const ConfirmationHeader = styled.div`
   display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  
+  h3 {
+    margin: 0;
+    color: #2c3e50;
+    font-weight: 700;
+  }
+`;
+
+const WarningIcon = styled.span`
+  font-size: 24px;
+`;
+
+const ConfirmationContent = styled.div`
+  margin-bottom: 25px;
+  
+  p {
+    margin: 10px 0;
+    color: #555;
+    line-height: 1.5;
+    
+    &:first-child {
+      font-weight: 600;
+    }
+  }
+`;
+
+const ConfirmationActions = styled.div`
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+`;
+
+const CancelButton = styled.button`
+  padding: 10px 20px;
+  background-color: #f8f9fa;
+  color: #666;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  
+  &:hover:not(:disabled) {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
+const ConfirmDeleteButton = styled.button`
+  padding: 10px 20px;
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  
+  &:hover:not(:disabled) {
+    background-color: #c0392b;
+    transform: translateY(-1px);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
+const HeaderActions = styled.div`
+  display: flex;
+  gap: 16px;
+  align-items: center;
+`;
+
+const ChangePasswordButton = styled.button`
+  background: #5a7af0;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 0;
+  margin-right: 0;
+  transition: background 0.2s, transform 0.2s;
+  &:hover {
+    background: #4a67cc;
+    transform: translateY(-2px);
+  }
+`;
+
+// Popup modal overlay for change password
+const ChangePasswordModalOverlay = styled.div`
+  position: fixed;
+  z-index: 3000;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
   justify-content: center;
 `;
 
-const SearchInput = styled.input`
-  padding: 10px 15px;
-  width: 100%;
-  max-width: 400px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 16px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s ease;
+const ChangePasswordModal = styled.div`
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 40px rgba(90, 122, 240, 0.18);
+  padding: 36px 28px 28px 28px;
+  min-width: 340px;
+  max-width: 95vw;
+  min-height: 220px;
+  position: relative;
+  animation: fadeInScale 0.25s;
 
-  &:focus {
-    outline: none;
-    border-color: #5a7af0;
-    box-shadow: 0 0 0 2px rgba(90, 122, 240, 0.2);
+  @keyframes fadeInScale {
+    from {
+      opacity: 0;
+      transform: scale(0.96) translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
   }
 `;
+
+const ModalCloseButton = styled.button`
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #888;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  transition: color 0.2s;
+  &:hover {
+    color: #e74c3c;
+  }
+`;
+
 export default TherapistDashboard;
