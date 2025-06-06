@@ -24,6 +24,7 @@ JoyVerse combines the power of gamification, emotion detection, and adaptive lea
 ---
 
 ![Made with Node.js](https://img.shields.io/badge/Backend-Node.js-green?logo=node.js)
+![Vite](https://img.shields.io/badge/Built%20with-Vite-646CFF?logo=vite&logoColor=white)
 ![Built with React](https://img.shields.io/badge/Frontend-React-blue?logo=react)
 ![Database-MongoDB](https://img.shields.io/badge/Database-MongoDB-brightgreen?logo=mongodb)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
